@@ -2,7 +2,18 @@
   "name": "trace-ex",
   "version": "1.0.0",
   "main": "index.js",
-  "author": "claretnnamocha <devclareo@gmail.com>",
+  "displayName": "TraceEx",
+  "scripts": {
+    "start": "ts-node src/index.ts",
+    "dev": "nodemon --exec ts-node src/index.ts",
+    "lint": "eslint --ext .js,.ts .",
+    "lint:fix": "yarn run lint --fix",
+    "prepare": "husky install"
+  },
+  "author": {
+    "email": "devclareo@gmail.com",
+    "name": "Claret Nnamocha"
+  },
   "dependencies": {
     "@bull-board/api": "^3.10.4",
     "@bull-board/express": "^3.10.4",

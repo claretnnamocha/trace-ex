@@ -1,0 +1,326 @@
+import { BigNumber } from "bignumber.js";
+import sequelize, { Op } from "sequelize";
+import { altlayer, ethers, zksync } from "../../../helpers/crypto/ethereum";
+import { SupportedToken, Transaction, Wallet } from "../../../models";
+import {
+  SupportedTokenSchema,
+  TransactionSchema,
+  WalletSchema,
+} from "../../../types/models";
+import { api, others } from "../../../types/services";
+
+/**
+ * Get L2 balance
+ * @param {api.utils.GetTokenBalance} params  Request Body
+ * @returns {others.Response} Contains status, message and data if any of the operation
+ */
+export const getL2Balance = async (
+  params: api.utils.GetTokenBalance
+): Promise<others.Response> => {
+  try {
+    const { network, address, token: symbol } = params;
+
+    const token: SupportedTokenSchema = await SupportedToken.findOne({
+      where: { symbol, network },
+    });
+
+    if (!token) {
+      return {
+        code: 404,
+        payload: { message: "Token not found", status: false },
+      };
+    }
+    const { decimals, contractAddress } = token;
+
+    let wei;
+
+    switch (network) {
+      case "zksync-goerli":
+        wei = await zksync.v2.getBalance({
+          address,
+          token: !contractAddress ? symbol.toUpperCase() : contractAddress,
+        });
+        break;
+      case "altlayer-devnet":
+        if (!contractAddress) {
+          wei = await ethers.getEtherBalance({ address, network });
+        } else {
+          wei = await ethers.getERC20TokenBalance({
+            address,
+            network,
+            contractAddress,
+          });
+        }
+        break;
+
+      default:
+        return {
+          status: false,
+          message: "This network is not supported yet",
+        };
+    }
+
+    const data = new BigNumber(wei).div(10 ** decimals).toFixed();
+
+    return {
+      status: true,
+      message: `L2 balance for: ${address} [${network}]`,
+      data,
+    };
+  } catch (error) {
+    return {
+      payload: {
+        status: false,
+        message: "Error trying get L2 balance",
+        error,
+      },
+      code: 500,
+    };
+  }
+};
+
+/**
+ * Update wallet balance
+ * @param {api.utils.UpdateWalletBalance} params  Request Body
+ * @returns {others.Response} Contains status, message and data if any of the operation
+ */
+export const updateWalletBalance = async (
+  params: api.utils.UpdateWalletBalance
+): Promise<others.Response> => {
+  try {
+    const { walletId, transaction, amount, type } = params;
+
+    const wallet: WalletSchema = await Wallet.findByPk(walletId);
+
+    await Transaction.create({
+      wallet,
+      metadata: { transaction },
+      type,
+      amount,
+    });
+
+    let [{ amount: totalRecieved }]: Array<TransactionSchema> =
+      await Transaction.findAll({
+        where: { type: "credit", "wallet.id": walletId, shouldAggregate: true },
+        attributes: [
+          [
+            sequelize.fn(
+              "sum",
+              sequelize.cast(sequelize.col("amount"), "DECIMAL")
+            ),
+            "amount",
+          ],
+        ],
+      });
+    totalRecieved = new BigNumber(totalRecieved || 0).toFixed();
+
+    let [{ amount: totalSpent }]: Array<TransactionSchema> =
+      await Transaction.findAll({
+        where: { type: "debit", "wallet.id": walletId, shouldAggregate: true },
+        attributes: [
+          [
+            sequelize.fn(
+              "sum",
+              sequelize.cast(sequelize.col("amount"), "DECIMAL")
+            ),
+            "amount",
+          ],
+        ],
+      });
+    totalSpent = new BigNumber(totalSpent || 0).toFixed();
+
+    const platformBalance = new BigNumber(totalRecieved)
+      .minus(new BigNumber(totalSpent))
+      .toFixed();
+
+    let onChainBalance: number;
+    const {
+      address,
+      token: { network, isNativeToken, contractAddress },
+    } = wallet;
+
+    switch (network) {
+      case "zksync-goerli":
+        if (isNativeToken) {
+          onChainBalance = await ethers.getEtherBalance({ address, network });
+        } else {
+          onChainBalance = await ethers.getERC20TokenBalance({
+            address,
+            network,
+            contractAddress,
+          });
+        }
+        break;
+      default:
+        return {
+          status: false,
+          message: "This network is not supported yet",
+        };
+    }
+
+    await Wallet.update(
+      {
+        platformBalance,
+        totalRecieved,
+        totalSpent,
+        onChainBalance,
+      },
+      { where: { id: walletId } }
+    );
+
+    return { status: true, message: `Wallet ${type}ed` };
+  } catch (error) {
+    return {
+      payload: {
+        status: false,
+        message: "Error trying to update wallet balance",
+        error,
+      },
+      code: 500,
+    };
+  }
+};
+
+/**
+ * Log wallet transactions
+ * @param {api.utils.LogWalletTransactions} params  Request Body
+ * @returns {others.Response} Contains status, message and data if any of the operation
+ */
+export const logWalletTransactions = async (
+  params: api.utils.LogWalletTransactions
+): Promise<others.Response> => {
+  try {
+    const { walletId, transaction } = params;
+
+    const {
+      token: { network, symbol },
+      address,
+      app: { id: appId },
+    }: WalletSchema = await Wallet.findByPk(walletId);
+    let normalizedTransaction: {
+      amount: string;
+      type: string;
+      token: string;
+      transaction: any;
+    };
+
+    switch (network) {
+      case "zksync-goerli":
+        normalizedTransaction = await zksync.v2.normalizeTransaction(
+          transaction,
+          address,
+          network
+        );
+        break;
+      case "altlayer-devnet":
+        normalizedTransaction = await altlayer.normalizeTransaction(
+          transaction,
+          address,
+          network
+        );
+        break;
+      default:
+        return {
+          status: false,
+          message: "This network is not supported yet",
+        };
+    }
+    if (normalizedTransaction.type !== "credit")
+      return { status: false, message: "Can't log non-credit transaction" };
+
+    if (normalizedTransaction.token !== symbol)
+      return { status: false, message: "Can't log transaction" };
+
+    const log = await Transaction.findOne({
+      where: {
+        "metadata.transaction.hash": normalizedTransaction.transaction.hash,
+        [Op.or]: [{ "wallet.id": walletId }, { "wallet.app.id": appId }],
+      },
+    });
+
+    if (log) {
+      return {
+        status: false,
+        message: "Transaction already exists",
+      };
+    }
+
+    await updateWalletBalance({ ...normalizedTransaction, walletId });
+
+    return {
+      code: 201,
+      payload: { status: true, message: "Transaction logged" },
+    };
+  } catch (error) {
+    return {
+      payload: {
+        status: false,
+        message: "Error trying to log wallet transactions",
+        error,
+      },
+      code: 500,
+    };
+  }
+};
+
+/**
+ * Get BTC balance
+ * @param {api.utils.UpdateWalletTransactions} params  Request Body
+ * @returns {others.Response} Contains status, message and data if any of the operation
+ */
+export const updateWalletTransactions = async (
+  params: api.utils.UpdateWalletTransactions
+): Promise<others.Response> => {
+  try {
+    const { address } = params;
+
+    const wallets: Array<WalletSchema> = await Wallet.findAll({
+      where: { address },
+    });
+
+    for (let index = 0; index < wallets.length; index += 1) {
+      const {
+        token: { network },
+        id: walletId,
+      } = wallets[index];
+      let transactions: any;
+
+      switch (network) {
+        case "zksync-goerli":
+          transactions = await zksync.v2.getAllTransactions({
+            address,
+            network,
+          });
+          break;
+        case "altlayer-devnet":
+          transactions = await altlayer.getAllTransactions({
+            address,
+            network,
+          });
+          break;
+        default:
+          return {
+            status: false,
+            message: "This network is not supported yet",
+          };
+      }
+
+      for (let index2 = 0; index2 < transactions.length; index2 += 1) {
+        const transaction = transactions[index2];
+        /* eslint-disable no-await-in-loop */
+        await logWalletTransactions({ transaction, walletId });
+      }
+    }
+
+    return { status: true, message: "Wallet transaction updated" };
+  } catch (error) {
+    return {
+      payload: {
+        status: false,
+        message: "Error trying to update wallet transactions",
+        error,
+      },
+      code: 500,
+    };
+  }
+};

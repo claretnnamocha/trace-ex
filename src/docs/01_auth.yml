@@ -1,0 +1,149 @@
+paths:
+  /auth/sign-in:
+    post:
+      tags:
+        - Authentication
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: request
+          required: true
+          schema:
+            $ref: "#/definitions/signIn"
+      responses:
+        200:
+          description: Status and message and data
+
+  /auth/sign-up:
+    post:
+      tags:
+        - Authentication
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: request
+          required: true
+          schema:
+            $ref: "#/definitions/signUp"
+      responses:
+        200:
+          description: Status and message and data
+
+  /auth/verify:
+    get:
+      tags:
+        - Authentication
+      produces:
+        - application/json
+      parameters:
+        - in: query
+          name: token
+          type: string
+        - in: query
+          name: email
+          type: string
+          required: true
+        - in: query
+          name: resend
+          type: boolean
+      responses:
+        200:
+          description: Status and message and data
+
+  /auth/initiate-reset:
+    post:
+      tags:
+        - Authentication
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: request
+          required: true
+          schema:
+            $ref: "#/definitions/initiateReset"
+      responses:
+        200:
+          description: Status and message and data
+
+  /auth/verify-reset:
+    get:
+      tags:
+        - Authentication
+      produces:
+        - application/json
+      parameters:
+        - in: query
+          name: email
+          required: true
+          type: string
+        - in: query
+          name: token
+          required: true
+          type: string
+      responses:
+        200:
+          description: Status and message and data
+
+  /auth/reset-password:
+    put:
+      tags:
+        - Authentication
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: request
+          required: true
+          schema:
+            $ref: "#/definitions/resetPassword"
+      responses:
+        200:
+          description: Status and message and data
+
+definitions:
+  signIn:
+    type: object
+    properties:
+      user:
+        type: string
+        required: true
+        default: admin@trace.exchange
+      password:
+        type: string
+        required: true
+        default: Password123!
+  signUp:
+    type: object
+    properties:
+      firstName:
+        type: string
+      lastName:
+        type: string
+      phone:
+        type: string
+      email:
+        type: string
+        required: true
+      password:
+        type: string
+        required: true
+  initiateReset:
+    type: object
+    properties:
+      email:
+        type: string
+        required: true
+  resetPassword:
+    type: object
+    properties:
+      email:
+        type: string
+        required: true
+      token:
+        type: string
+        required: true
+      password:
+        type: string

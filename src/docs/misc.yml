@@ -1,0 +1,23 @@
+paths:
+  /misc/ping:
+    get:
+      tags:
+        - Misc
+      produces:
+        - application/json
+      responses:
+        200:
+          description: Success
+        400:
+          description: Error
+        500:
+          description: Server down
+
+securityDefinitions:
+  Bearer:
+    type: apiKey
+    in: header
+    name: Authorization
+
+security:
+  - Bearer: []

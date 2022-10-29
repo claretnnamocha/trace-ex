@@ -1,0 +1,154 @@
+paths:
+  /api/app/generate-wallet:
+    get:
+      tags:
+        - API - App
+      produces:
+        - application/json
+      parameters:
+        - in: query
+          name: symbol
+          enum: ["eth", "usdc", "ausd"]
+          required: true
+        - in: query
+          name: network
+          enum:
+            [
+              "altlayer-devnet",
+              "metis-goerli",
+              "zksync-goerli",
+              "zksync-mainnet",
+            ]
+          required: true
+        - in: query
+          name: blockchain
+          enum: ["ethereum"]
+          required: true
+        - in: query
+          name: contactEmail
+          required: true
+        - in: query
+          name: addressValidity
+          type: number
+          min: 10
+          default: 10
+        - in: query
+          name: targetAmount
+          type: number
+          min: 0.00001
+        - in: query
+          name: contactName
+        - in: query
+          name: contactPhone
+      security:
+        - API_SECRET_KEY: []
+      responses:
+        200:
+          description: Success
+        400:
+          description: Error
+        500:
+          description: Server down
+
+  /api/app/wallet:
+    get:
+      tags:
+        - API - App
+      produces:
+        - application/json
+      parameters:
+        - in: query
+          name: reference
+          required: true
+      security:
+        - API_SECRET_KEY: []
+      responses:
+        200:
+          description: Success
+        400:
+          description: Error
+        500:
+          description: Server down
+
+  /api/app/default-wallets:
+    get:
+      tags:
+        - API - App
+      produces:
+        - application/json
+      security:
+        - API_SECRET_KEY: []
+      responses:
+        200:
+          description: Success
+        400:
+          description: Error
+        500:
+          description: Server down
+
+  /api/app/wallets:
+    get:
+      tags:
+        - API - App
+      produces:
+        - application/json
+      parameters:
+        - in: query
+          name: page
+          default: 1
+          required: true
+        - in: query
+          name: pageSize
+          default: 10
+          required: true
+      security:
+        - API_SECRET_KEY: []
+      responses:
+        200:
+          description: Success
+        400:
+          description: Error
+        500:
+          description: Server down
+
+  /api/app/send-crypto:
+    post:
+      tags:
+        - API - App
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: request
+          required: true
+          schema:
+            $ref: "#/definitions/sendCrypto"
+      security:
+        - API_SECRET_KEY: []
+      responses:
+        200:
+          description: Success
+        400:
+          description: Error
+        500:
+          description: Server down
+
+definitions:
+  sendCrypto:
+    type: object
+    properties:
+      to:
+        type: string
+        required: true
+      amount:
+        type: number
+        required: true
+      token:
+        type: string
+        enum: ["eth", "usdc", "ausd"]
+        required: true
+      network:
+        type: string
+        enum:
+          ["altlayer-devnet", "metis-goerli", "zksync-goerli", "zksync-mainnet"]
+        required: true

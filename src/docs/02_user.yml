@@ -1,0 +1,367 @@
+paths:
+  /user:
+    get:
+      tags:
+        - User
+      produces:
+        - application/json
+      security:
+        - Bearer: []
+      responses:
+        200:
+          description: Success
+        400:
+          description: Error
+        500:
+          description: Server down
+
+  /user/verify-phone:
+    get:
+      tags:
+        - User
+      produces:
+        - application/json
+      security:
+        - Bearer: []
+      parameters:
+        - in: query
+          name: token
+          type: string
+      responses:
+        200:
+          description: Success
+        400:
+          description: Error
+        500:
+          description: Server down
+
+  /user/totp-qrcode:
+    get:
+      tags:
+        - User
+      produces:
+        - application/json
+      security:
+        - Bearer: []
+      responses:
+        200:
+          description: Success
+        400:
+          description: Error
+        500:
+          description: Server down
+
+  /user/regenerate-totp-secret:
+    put:
+      tags:
+        - User
+      produces:
+        - application/json
+      security:
+        - Bearer: []
+      responses:
+        200:
+          description: Success
+        400:
+          description: Error
+        500:
+          description: Server down
+
+  /user/validate-totp:
+    get:
+      tags:
+        - User
+      produces:
+        - application/json
+      security:
+        - Bearer: []
+      parameters:
+        - in: query
+          name: token
+          type: string
+      responses:
+        200:
+          description: Success
+        400:
+          description: Error
+        500:
+          description: Server down
+
+  /user/log-other-devices-out:
+    post:
+      tags:
+        - User
+      produces:
+        - application/json
+      security:
+        - Bearer: []
+      responses:
+        200:
+          description: Success
+        400:
+          description: Error
+        500:
+          description: Server down
+
+  /user/sign-out:
+    post:
+      tags:
+        - User
+      produces:
+        - application/json
+      security:
+        - Bearer: []
+      responses:
+        200:
+          description: Success
+        400:
+          description: Error
+        500:
+          description: Server down
+
+  /user/update-password:
+    put:
+      tags:
+        - User
+      produces:
+        - application/json
+      security:
+        - Bearer: []
+      parameters:
+        - in: body
+          name: request
+          required: true
+          schema:
+            $ref: "#/definitions/changePassword"
+      responses:
+        200:
+          description: Success
+        400:
+          description: Error
+        500:
+          description: Server down
+
+  /user/update-profile:
+    put:
+      tags:
+        - User
+      produces:
+        - application/json
+      security:
+        - Bearer: []
+      parameters:
+        - in: body
+          name: request
+          required: true
+          schema:
+            $ref: "#/definitions/editProfile"
+      responses:
+        200:
+          description: Success
+        400:
+          description: Error
+        500:
+          description: Server down
+
+  /user/all-users:
+    get:
+      tags:
+        - User
+      produces:
+        - application/json
+      security:
+        - Bearer: []
+      parameters:
+        - in: query
+          name: name
+        - in: query
+          name: email
+        - in: query
+          name: username
+        - in: query
+          name: verifiedEmail
+          type: boolean
+        - in: query
+          name: verifiedPhone
+          type: boolean
+        - in: query
+          name: active
+          type: boolean
+        - in: query
+          name: isDeleted
+          type: boolean
+        - in: query
+          name: gender
+        - in: query
+          name: dob
+        - in: query
+          name: phone
+        - in: query
+          name: permissions
+          type: array
+          items:
+            type: string
+        - in: query
+          name: role
+          enum: ["admin", "user"]
+        - in: query
+          name: page
+          type: integer
+          default: 1
+        - in: query
+          name: pageSize
+          type: integer
+          default: 10
+      responses:
+        200:
+          description: Success
+        400:
+          description: Error
+        500:
+          description: Server down
+
+  #
+  # User App
+  #
+
+  /user/create-app:
+    post:
+      tags:
+        - User App
+      produces:
+        - application/json
+      security:
+        - Bearer: []
+      parameters:
+        - in: body
+          name: request
+          required: true
+          schema:
+            $ref: "#/definitions/createApp"
+      responses:
+        200:
+          description: Success
+        400:
+          description: Error
+        500:
+          description: Server down
+
+  /user/update-app:
+    put:
+      tags:
+        - User App
+      produces:
+        - application/json
+      security:
+        - Bearer: []
+      parameters:
+        - in: body
+          name: request
+          required: true
+          schema:
+            $ref: "#/definitions/updateApp"
+      responses:
+        200:
+          description: Success
+        400:
+          description: Error
+        500:
+          description: Server down
+
+  /user/apps:
+    get:
+      tags:
+        - User App
+      produces:
+        - application/json
+      security:
+        - Bearer: []
+      responses:
+        200:
+          description: Success
+        400:
+          description: Error
+        500:
+          description: Server down
+
+  /user/get-app-keys:
+    get:
+      tags:
+        - User App
+      produces:
+        - application/json
+      parameters:
+        - in: query
+          name: name
+          required: true
+      security:
+        - Bearer: []
+      responses:
+        200:
+          description: Success
+        400:
+          description: Error
+        500:
+          description: Server down
+
+  /user/delete-app:
+    delete:
+      tags:
+        - User App
+      produces:
+        - application/json
+      security:
+        - Bearer: []
+      parameters:
+        - in: body
+          name: request
+          required: true
+          schema:
+            $ref: "#/definitions/createApp"
+      responses:
+        200:
+          description: Success
+        400:
+          description: Error
+        500:
+          description: Server down
+
+definitions:
+  changePassword:
+    type: object
+    properties:
+      password:
+        type: string
+        required: true
+      newPassword:
+        type: string
+        required: true
+      logOtherDevicesOut:
+        type: boolean
+        default: false
+  editProfile:
+    properties:
+      firstName:
+        type: string
+      lastName:
+        type: string
+      avatar:
+        type: string
+      location:
+        type: string
+  createApp:
+    properties:
+      name:
+        type: string
+        required: true
+  updateApp:
+    properties:
+      name:
+        type: string
+        required: true
+      displayName:
+        type: string
+      supportEmail:
+        type: string
+      instantSettlement:
+        type: boolean
