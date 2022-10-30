@@ -36,7 +36,7 @@ const Transaction = db.define(
   { timestamps: true, tableName: "transaction" }
 );
 
-Transaction.prototype.toJSON = function () {
+Transaction.prototype.toJSON = function toJSON() {
   const data = this.dataValues;
 
   delete data.isDeleted;

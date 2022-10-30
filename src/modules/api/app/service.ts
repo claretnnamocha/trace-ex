@@ -232,7 +232,7 @@ export const generateWallet = async (
       targetAmount,
       symbol,
     } = params;
-    
+
     const token: SupportedTokenSchema = await SupportedToken.findOne({
       where: { network, blockchain, symbol },
     });
@@ -309,8 +309,6 @@ export const generateWallet = async (
       code: 201,
     };
   } catch (error) {
-    console.log(error);
-    
     return {
       payload: {
         status: false,

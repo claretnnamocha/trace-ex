@@ -76,12 +76,11 @@ const Wallet = db.define(
   }
 );
 
-Wallet.prototype.toJSON = function () {
+Wallet.prototype.toJSON = function toJSON() {
   const data = this.dataValues;
 
   delete data.active;
   delete data.isDeleted;
   return data;
 };
-
 export { Wallet };

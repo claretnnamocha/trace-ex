@@ -165,30 +165,30 @@ const seedSupportedTokens = async () => {
 const seedConfig = async () => {
   const { Config } = await import("../../models");
 
-  await Config.create({
+  return Config.create({
     key: "WALLET_FACTORY_ADDRESS",
     value: WALLET_FACTORY_ADDRESS,
   });
 };
 
 export const seed = async (models: any) => {
-  console.log("DB cleared");
+  console.log("DB cleared\n");
 
   console.log("Seeding supported tokens");
   await seedSupportedTokens();
-  console.log("Complete!");
+  console.log("Complete!\n");
 
   console.log("Seeding config");
   await seedConfig();
-  console.log("Complete!");
+  console.log("Complete!\n");
 
   console.log("Seeding default user");
   const user = await seedDefaultUser(models);
-  console.log("Complete!");
+  console.log("Complete!\n");
 
   console.log("Seeding default app");
   await seedDefaultApp(user);
-  console.log("Complete!");
+  console.log("Complete!\n");
 
   // todo: plant other db seeds 😎
   console.log("Database Seeded");

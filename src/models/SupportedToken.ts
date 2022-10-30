@@ -72,7 +72,7 @@ const SupportedToken = db.define(
   }
 );
 
-SupportedToken.prototype.toJSON = function () {
+SupportedToken.prototype.toJSON = function toJSON() {
   const data = this.dataValues;
 
   delete data.active;
