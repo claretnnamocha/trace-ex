@@ -32,7 +32,7 @@ export const getL2Balance = async (
     }
     const { decimals, contractAddress } = token;
 
-    let wei;
+    let wei: number;
 
     switch (network) {
       case "zksync-goerli":
