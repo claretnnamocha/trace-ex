@@ -44,7 +44,7 @@ export const getL2Balance = async (
         break;
       case "altlayer-devnet":
         if (!contractAddress) {
-          wei = await ethers.getEtherBalance({ address, network });
+          wei = await ethers.getNativeTokenBalance({ address, network });
         } else {
           wei = await ethers.getERC20TokenBalance({
             address,
@@ -146,7 +146,10 @@ export const updateWalletBalance = async (
       case "altlayer-devnet":
       case "metis-goerli":
         if (isNativeToken) {
-          onChainBalance = await ethers.getEtherBalance({ address, network });
+          onChainBalance = await ethers.getNativeTokenBalance({
+            address,
+            network,
+          });
         } else {
           onChainBalance = await ethers.getERC20TokenBalance({
             address,

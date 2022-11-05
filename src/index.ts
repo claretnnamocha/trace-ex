@@ -6,7 +6,7 @@ import { displayName } from "../package.json";
 import { bullBoard, db, env, security, swagger, swaggerDev } from "./configs";
 import { debug, isTestnet } from "./configs/env";
 import { response } from "./helpers";
-import { listenForOnChainTransactions } from "./jobs/listenForOnChainTransactions";
+import { listenForOnChainTransactions } from "./jobs";
 import routes from "./routes";
 
 const app = express();

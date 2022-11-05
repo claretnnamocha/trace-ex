@@ -40,6 +40,7 @@ const supportedTokens = {
         isStableToken: false,
         contractAddress: undefined,
         decimals: 18,
+        minimumDrainAmount: 1,
         isTestnet: true,
       },
       kwt: {
@@ -49,6 +50,7 @@ const supportedTokens = {
         isStableToken: false,
         contractAddress: "0xBd59BCB8B2648bAfC11D2a7915de9b9d173545A1",
         decimals: 18,
+        minimumDrainAmount: 1,
         isTestnet: true,
       },
     },
@@ -80,6 +82,7 @@ const seedSupportedTokens = async () => {
           isTestnet: testnet,
           isStableToken,
           name,
+          minimumDrainAmount,
         } = coins[symbol];
 
         const isNativeToken = contractAddress === undefined;
@@ -95,6 +98,7 @@ const seedSupportedTokens = async () => {
             isStableToken,
             name,
             verified: true,
+            minimumDrainAmount,
           });
         }
       }

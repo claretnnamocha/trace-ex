@@ -357,7 +357,7 @@ export const getWalletFromMnemonic = ({
   return Wallet.fromMnemonic(mnemonic, path).connect(provider);
 };
 
-export const getEtherBalance = async ({
+export const getNativeTokenBalance = async ({
   address,
   network = "zksync-goerli",
 }: {

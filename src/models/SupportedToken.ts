@@ -14,6 +14,10 @@ const SupportedToken = db.define(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
+    minimumDrainAmount: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
     contractAddress: {
       type: DataTypes.STRING,
     },

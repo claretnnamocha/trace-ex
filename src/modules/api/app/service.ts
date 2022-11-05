@@ -1,16 +1,14 @@
 import { BigNumber } from "bignumber.js";
-import crypto from "crypto";
-import { HD_PATH } from "../../../configs/constants";
+import {
+  HD_PATH,
+  SALT,
+  WALLET_FACTORY_ADDRESS,
+} from "../../../configs/constants";
 import { db } from "../../../configs/db";
 import { mnemonic } from "../../../configs/env";
 import { ethers } from "../../../helpers/crypto/ethereum";
-import { App, Config, SupportedToken, User, Wallet } from "../../../models";
-import {
-  AppSchema,
-  ConfigSchema,
-  UserSchema,
-  WalletSchema,
-} from "../../../types/models";
+import { App, SupportedToken, User, Wallet } from "../../../models";
+import { AppSchema, UserSchema, WalletSchema } from "../../../types/models";
 import { SupportedTokenSchema } from "../../../types/models/SupportedToken";
 import { api, others } from "../../../types/services";
 
@@ -251,18 +249,14 @@ export const generateWallet = async (
 
     switch (blockchain) {
       case "ethereum": {
-        const { value: contractAddress }: ConfigSchema = await Config.findOne({
-          where: { key: "WALLET_FACTORY_ADDRESS" },
-        });
+        const contractAddress = await WALLET_FACTORY_ADDRESS();
 
-        // @ts-ignore
+        if (network !== "altlayer-devnet") return;
+
         const walletFactory = ethers.getFactory({ contractAddress, network });
 
         const { secretKey }: AppSchema = await App.findByPk(appId);
-        const salt = `0x${crypto
-          .createHmac("sha512", secretKey)
-          .update(index.toFixed())
-          .digest("hex")}`;
+        const salt = SALT({ walletIndex: index, secretKey });
 
         address = await ethers.getAddressWithFactory({ salt, walletFactory });
         break;

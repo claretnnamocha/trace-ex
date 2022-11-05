@@ -3,6 +3,7 @@ import { Model } from "sequelize/types";
 export interface SupportedToken {
   id?: string;
   decimals?: number;
+  minimumDrainAmount?: number;
   contractAddress?: string;
   symbol?: string;
   blockchain?: string;
