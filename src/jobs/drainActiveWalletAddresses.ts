@@ -43,9 +43,10 @@ export const drainActiveWalletAddresses = async () => {
           index: walletIndex,
         } = wallets[index];
         let onChainBalance: number;
-        if (network !== "altlayer-devnet") return;
-
         const contractAddress = await WALLET_FACTORY_ADDRESS();
+        if (network !== "altlayer-devnet")
+          throw new Error("Network not supported");
+
         const walletFactory = ethers.getFactory({ contractAddress, network });
 
         const { secretKey }: AppSchema = await App.findByPk(appId);

@@ -251,7 +251,8 @@ export const generateWallet = async (
       case "ethereum": {
         const contractAddress = await WALLET_FACTORY_ADDRESS();
 
-        if (network !== "altlayer-devnet") return;
+        if (network !== "altlayer-devnet")
+          throw new Error("Network not supported");
 
         const walletFactory = ethers.getFactory({ contractAddress, network });
 
