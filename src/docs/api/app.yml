@@ -8,7 +8,7 @@ paths:
       parameters:
         - in: query
           name: symbol
-          enum: ["eth", "usdc", "ausd"]
+          enum: ["alt", "kwt"]
           required: true
         - in: query
           name: network
@@ -145,7 +145,7 @@ definitions:
         required: true
       token:
         type: string
-        enum: ["eth", "usdc", "ausd"]
+        enum: ["alt", "kwt"]
         required: true
       network:
         type: string

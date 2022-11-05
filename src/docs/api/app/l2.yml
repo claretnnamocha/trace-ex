@@ -77,7 +77,7 @@ definitions:
         required: true
       token:
         type: string
-        enum: ["eth", "usdc", "ausd"]
+        enum: ["alt", "kwt"]
         required: true
       network:
         type: string

@@ -1,6 +1,7 @@
 import { BigNumber } from "bignumber.js";
 import sequelize, { Op } from "sequelize";
 import { altlayer, ethers, zksync } from "../../../helpers/crypto/ethereum";
+import { NormalizedTransaction } from "../../../helpers/crypto/ethereum/ethers";
 import { SupportedToken, Transaction, Wallet } from "../../../models";
 import {
   SupportedTokenSchema,
@@ -88,7 +89,7 @@ export const updateWalletBalance = async (
   params: api.utils.UpdateWalletBalance
 ): Promise<others.Response> => {
   try {
-    const { walletId, transaction, amount, type } = params;
+    const { walletId, transaction, amount, type, confirmed } = params;
 
     const wallet: WalletSchema = await Wallet.findByPk(walletId);
 
@@ -97,6 +98,7 @@ export const updateWalletBalance = async (
       metadata: { transaction },
       type,
       amount,
+      confirmed,
     });
 
     let [{ amount: totalRecieved }]: Array<TransactionSchema> =
@@ -141,6 +143,8 @@ export const updateWalletBalance = async (
 
     switch (network) {
       case "zksync-goerli":
+      case "altlayer-devnet":
+      case "metis-goerli":
         if (isNativeToken) {
           onChainBalance = await ethers.getEtherBalance({ address, network });
         } else {
@@ -197,12 +201,7 @@ export const logWalletTransactions = async (
       address,
       app: { id: appId },
     }: WalletSchema = await Wallet.findByPk(walletId);
-    let normalizedTransaction: {
-      amount: string;
-      type: string;
-      token: string;
-      transaction: any;
-    };
+    let normalizedTransaction: NormalizedTransaction;
 
     switch (network) {
       case "zksync-goerli":
@@ -228,7 +227,7 @@ export const logWalletTransactions = async (
     if (normalizedTransaction.type !== "credit")
       return { status: false, message: "Can't log non-credit transaction" };
 
-    if (normalizedTransaction.token !== symbol)
+    if (normalizedTransaction.token.toLowerCase() !== symbol.toLowerCase())
       return { status: false, message: "Can't log transaction" };
 
     const log = await Transaction.findOne({

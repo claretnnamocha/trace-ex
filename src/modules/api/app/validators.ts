@@ -14,7 +14,7 @@ export const updateApp = {
 };
 
 const validNetworks = ["zksync-goerli", "altlayer-devnet"];
-const validAssets = ["eth", "usdc"];
+const validAssets = ["alt", "kwt"];
 const validBlockchains = ["ethereum"];
 
 export const generateAddress = {

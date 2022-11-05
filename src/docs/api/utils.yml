@@ -13,7 +13,7 @@ paths:
         - in: query
           name: token
           type: string
-          enum: ["eth", "usdc", "ausd"]
+          enum: ["alt", "kwt"]
           required: true
         - in: query
           name: network

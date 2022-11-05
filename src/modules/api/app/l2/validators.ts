@@ -1,7 +1,7 @@
 import Joi from "joi";
 
 const validNetworks = ["zksync-goerli", "altlayer-devnet"];
-const validAssets = ["eth", "usdc"];
+const validAssets = ["alt", "kwt"];
 
 export const l2Transfer = {
   to: Joi.string().required(),

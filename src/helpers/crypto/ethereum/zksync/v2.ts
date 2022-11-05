@@ -7,6 +7,7 @@ import {
   getContract,
   IERC20_ABI,
   NETWORKS,
+  NormalizedTransaction,
   PROVIDER as ETH_PROVIDER,
 } from "../ethers";
 
@@ -280,19 +281,16 @@ export const normalizeTransaction = async (
   transaction: ZKTransaction,
   address: string,
   network: NETWORKS = "zksync-mainnet"
-): Promise<{
-  amount: string;
-  type: string;
-  token: string;
-  transaction: any;
-}> => {
-  const type = transaction.op.to === address ? "credit" : "debit";
+): Promise<NormalizedTransaction> => {
+  const type =
+    transaction.op.to.toLowerCase() === address.toLowerCase()
+      ? "credit"
+      : "debit";
   const token =
     transaction.op.tokenId === 0
       ? "ETH"
       : (await getToken({ network, id: transaction.op.tokenId })).symbol;
   const { amount } = transaction.op;
-  const trx: any = { transaction, type, amount, token };
 
-  return trx;
+  return { transaction, type, amount, token, confirmed: true };
 };

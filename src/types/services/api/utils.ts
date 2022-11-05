@@ -18,4 +18,5 @@ export interface UpdateWalletBalance {
   transaction: any;
   amount: string;
   type: string;
+  confirmed: boolean;
 }

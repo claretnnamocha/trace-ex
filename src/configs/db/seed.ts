@@ -32,84 +32,24 @@ const seedDefaultApp = async (user: any) => {
 
 const supportedTokens = {
   ethereum: {
-    // goerli: {
-    //   eth: {
-    //     name: "Ether",
-    //     coinGeckoId: "ethereum",
-    //     isNativeToken: true,
-    //     isStableToken: false,
-    //     contractAddress: undefined,
-    //     decimals: 18,
-    //     isTestnet: true,
-    //   },
-    //   usdc: {
-    //     name: "USD Coin",
-    //     coinGeckoId: "usdc-coin",
-    //     isNativeToken: false,
-    //     isStableToken: true,
-    //     contractAddress: "0xd35CCeEAD182dcee0F148EbaC9447DA2c4D449c4",
-    //     decimals: 6,
-    //     isTestnet: true,
-    //   },
-    // },
-    // "zksync-goerli": {
-    //   eth: {
-    //     name: "Ether",
-    //     coinGeckoId: "ethereum",
-    //     isNativeToken: true,
-    //     isStableToken: false,
-    //     contractAddress: undefined,
-    //     decimals: 18,
-    //     isTestnet: true,
-    //   },
-    //   usdc: {
-    //     name: "USD Coin",
-    //     coinGeckoId: "usdc-coin",
-    //     isNativeToken: false,
-    //     isStableToken: true,
-    //     contractAddress: "0xd35CCeEAD182dcee0F148EbaC9447DA2c4D449c4",
-    //     decimals: 6,
-    //     isTestnet: true,
-    //   },
-    // },
     "altlayer-devnet": {
-      eth: {
-        name: "Ether",
-        coinGeckoId: "ethereum",
+      alt: {
+        name: "Alt Coin",
+        coinGeckoId: "alt-coin",
         isNativeToken: true,
         isStableToken: false,
         contractAddress: undefined,
         decimals: 18,
         isTestnet: true,
       },
-      ausd: {
-        name: "Altlayer USD",
-        coinGeckoId: "usdc-coin",
+      kwt: {
+        name: "Keeway Token",
+        coinGeckoId: "keeway-token",
         isNativeToken: false,
-        isStableToken: true,
-        contractAddress: "0xAbE13DAF33Fa40cF63580cB4ebd1Bd17639fA268",
+        isStableToken: false,
+        contractAddress: "0xBd59BCB8B2648bAfC11D2a7915de9b9d173545A1",
         decimals: 18,
         isTestnet: true,
-      },
-    },
-    mainnet: {
-      eth: {
-        name: "Ether",
-        coinGeckoId: "ethereum",
-        isNativeToken: true,
-        isStableToken: false,
-        contractAddress: undefined,
-        decimals: 18,
-        isTestnet: false,
-      },
-      usdc: {
-        name: "USD Coin",
-        coinGeckoId: "usdc-coin",
-        isNativeToken: false,
-        isStableToken: true,
-        contractAddress: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-        decimals: 6,
-        isTestnet: false,
       },
     },
   },

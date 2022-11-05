@@ -240,7 +240,11 @@ export const generateWallet = async (
     if (!token) return { status: false, message: "Token not found" };
 
     let index: number = await Wallet.max("index", {
-      where: { "token.blockchain": blockchain },
+      where: {
+        "token.blockchain": blockchain,
+        "token.network": network,
+        "token.symbol": symbol,
+      },
     });
     index = index === null ? 0 : index + 1;
     let address: string;
@@ -497,7 +501,7 @@ export const sendCrypto = async (
           network,
         });
 
-        if (symbol === "eth") {
+        if (symbol === "alt") {
           const { hash } = await ethers.sendEther({
             reciever: to,
             amount,

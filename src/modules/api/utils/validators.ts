@@ -6,7 +6,7 @@ const validL2Networks = [
   "zksync-goerli",
   "zksync-mainnet",
 ];
-const validAssets = ["eth", "usdc", "ausd"];
+const validAssets = ["alt", "kwt"];
 
 export const getTokenBalance = {
   network: Joi.string()

@@ -298,6 +298,14 @@ export type NETWORKS =
   | "zksync-goerli"
   | "zksync-mainnet";
 
+export interface NormalizedTransaction {
+  amount: string;
+  type: string;
+  token: string;
+  transaction: any;
+  confirmed: boolean;
+}
+
 export const RPC_LINK = ({
   network = "zksync-goerli",
 }: {
