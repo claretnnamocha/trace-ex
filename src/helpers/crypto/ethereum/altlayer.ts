@@ -237,6 +237,14 @@ export const normalizeTransaction = async (
           })
         ).symbol;
 
-  transaction.hash = transaction?.hash || transaction?.transactionHash;
-  return { transaction, type, amount, token, confirmed: true };
+  return {
+    transaction: {
+      ...transaction,
+      hash: transaction?.hash || transaction?.transactionHash,
+    },
+    type,
+    amount,
+    token,
+    confirmed: true,
+  };
 };
