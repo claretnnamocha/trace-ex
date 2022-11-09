@@ -928,7 +928,7 @@ export const getWallet = async (
   params: exchange.GetWallet
 ): Promise<others.Response> => {
   try {
-    const { userId, token } = params;
+    const { userId, token, network } = params;
 
     const user: ExchangeUserSchema = await ExchangeUser.findByPk(userId);
 
@@ -940,8 +940,19 @@ export const getWallet = async (
     }
 
     const data = await Wallet.findOne({
-      where: { index: user.index, "token.symbol": token },
+      where: {
+        index: user.index,
+        "token.symbol": token,
+        "token.network": network,
+      },
     });
+
+    if (!data) {
+      return {
+        payload: { status: false, message: "Wallet does not exist" },
+        code: 404,
+      };
+    }
 
     return { status: true, message: "Wallet", data };
   } catch (error) {

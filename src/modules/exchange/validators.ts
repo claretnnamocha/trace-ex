@@ -4,6 +4,7 @@ import passwordComplexity from "joi-password-complexity";
 const JoiPhone = Joi.extend(require("joi-phone-number"));
 
 const validAssets = ["alt", "kwt"];
+const validNetworks = ["zksync-goerli", "altlayer-devnet"];
 
 export const signIn = {
   user: Joi.string().required(),
@@ -77,5 +78,10 @@ export const getAllUsers = {
 export const getWallet = {
   token: Joi.string()
     .valid(...validAssets)
+    .required(),
+  network: Joi.string()
+    .valid(...validNetworks)
+    .insensitive()
+    .lowercase()
     .required(),
 };

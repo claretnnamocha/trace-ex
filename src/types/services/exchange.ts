@@ -71,6 +71,7 @@ export interface ValidateTotp {
 }
 
 export interface GetWallet {
+  network: string;
   token: string;
   userId: string;
 }
