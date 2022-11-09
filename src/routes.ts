@@ -1,8 +1,8 @@
 import { Response, Router } from "express";
 import { response } from "./helpers";
-import { authenticate } from "./middlewares";
 import api from "./modules/api/routes";
 import auth from "./modules/auth/routes";
+import exchange from "./modules/exchange/routes";
 import misc from "./modules/misc/routes";
 import user from "./modules/user/routes";
 
@@ -14,9 +14,9 @@ routes.use("/auth", auth);
 
 routes.use("/misc", misc);
 
-routes.use(authenticate({}));
-
 routes.use("/user", user);
+
+routes.use("/exchange", exchange);
 
 routes.use((_, res: Response) => {
   response(res, { status: false, message: "Route not found" }, 404);

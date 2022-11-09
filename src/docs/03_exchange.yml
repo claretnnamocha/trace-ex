@@ -1,0 +1,392 @@
+paths:
+  /exchange/auth/sign-in:
+    post:
+      tags:
+        - Exchange
+      produces:
+        - application/json
+      security:
+        - API_SECRET_KEY: []
+      parameters:
+        - in: body
+          name: request
+          required: true
+          schema:
+            $ref: "#/definitions/signIn"
+      responses:
+        200:
+          description: Status and message and data
+
+  /exchange/auth/sign-up:
+    post:
+      tags:
+        - Exchange
+      produces:
+        - application/json
+      security:
+        - API_SECRET_KEY: []
+      parameters:
+        - in: body
+          name: request
+          required: true
+          schema:
+            $ref: "#/definitions/signUp"
+      responses:
+        200:
+          description: Status and message and data
+
+  /exchange/auth/verify:
+    get:
+      tags:
+        - Exchange
+      produces:
+        - application/json
+      security:
+        - API_SECRET_KEY: []
+      parameters:
+        - in: query
+          name: token
+          type: string
+        - in: query
+          name: email
+          type: string
+          required: true
+        - in: query
+          name: resend
+          type: boolean
+      responses:
+        200:
+          description: Status and message and data
+
+  /exchange/auth/initiate-reset:
+    post:
+      tags:
+        - Exchange
+      produces:
+        - application/json
+      security:
+        - API_SECRET_KEY: []
+      parameters:
+        - in: body
+          name: request
+          required: true
+          schema:
+            $ref: "#/definitions/initiateReset"
+      responses:
+        200:
+          description: Status and message and data
+
+  /exchange/auth/verify-reset:
+    get:
+      tags:
+        - Exchange
+      produces:
+        - application/json
+      security:
+        - API_SECRET_KEY: []
+      parameters:
+        - in: query
+          name: email
+          required: true
+          type: string
+        - in: query
+          name: token
+          required: true
+          type: string
+      responses:
+        200:
+          description: Status and message and data
+
+  /exchange/auth/reset-password:
+    put:
+      tags:
+        - Exchange
+      produces:
+        - application/json
+      security:
+        - API_SECRET_KEY: []
+      parameters:
+        - in: body
+          name: request
+          required: true
+          schema:
+            $ref: "#/definitions/resetPassword"
+      responses:
+        200:
+          description: Status and message and data
+
+  # Users
+
+  /exchange/user:
+    get:
+      tags:
+        - Exchange
+      produces:
+        - application/json
+      security:
+        - Bearer: []
+        - API_SECRET_KEY: []
+      responses:
+        200:
+          description: Success
+        400:
+          description: Error
+        500:
+          description: Server down
+
+  /exchange/user/verify-phone:
+    get:
+      tags:
+        - Exchange
+      produces:
+        - application/json
+      security:
+        - Bearer: []
+        - API_SECRET_KEY: []
+      parameters:
+        - in: query
+          name: token
+          type: string
+      responses:
+        200:
+          description: Success
+        400:
+          description: Error
+        500:
+          description: Server down
+
+  /exchange/user/totp-qrcode:
+    get:
+      tags:
+        - Exchange
+      produces:
+        - application/json
+      security:
+        - Bearer: []
+        - API_SECRET_KEY: []
+      responses:
+        200:
+          description: Success
+        400:
+          description: Error
+        500:
+          description: Server down
+
+  /exchange/user/regenerate-totp-secret:
+    put:
+      tags:
+        - Exchange
+      produces:
+        - application/json
+      security:
+        - Bearer: []
+        - API_SECRET_KEY: []
+        - API_SECRET_KEY: []
+      responses:
+        200:
+          description: Success
+        400:
+          description: Error
+        500:
+          description: Server down
+
+  /exchange/user/validate-totp:
+    get:
+      tags:
+        - Exchange
+      produces:
+        - application/json
+      security:
+        - Bearer: []
+        - API_SECRET_KEY: []
+      parameters:
+        - in: query
+          name: token
+          type: string
+      responses:
+        200:
+          description: Success
+        400:
+          description: Error
+        500:
+          description: Server down
+
+  /exchange/user/log-other-devices-out:
+    post:
+      tags:
+        - Exchange
+      produces:
+        - application/json
+      security:
+        - Bearer: []
+        - API_SECRET_KEY: []
+      responses:
+        200:
+          description: Success
+        400:
+          description: Error
+        500:
+          description: Server down
+
+  /exchange/user/sign-out:
+    post:
+      tags:
+        - Exchange
+      produces:
+        - application/json
+      security:
+        - Bearer: []
+        - API_SECRET_KEY: []
+      responses:
+        200:
+          description: Success
+        400:
+          description: Error
+        500:
+          description: Server down
+
+  /exchange/user/update-password:
+    put:
+      tags:
+        - Exchange
+      produces:
+        - application/json
+      security:
+        - Bearer: []
+        - API_SECRET_KEY: []
+      parameters:
+        - in: body
+          name: request
+          required: true
+          schema:
+            $ref: "#/definitions/changePassword"
+      responses:
+        200:
+          description: Success
+        400:
+          description: Error
+        500:
+          description: Server down
+
+  /exchange/user/update-profile:
+    put:
+      tags:
+        - Exchange
+      produces:
+        - application/json
+      security:
+        - Bearer: []
+        - API_SECRET_KEY: []
+      parameters:
+        - in: body
+          name: request
+          required: true
+          schema:
+            $ref: "#/definitions/editProfile"
+      responses:
+        200:
+          description: Success
+        400:
+          description: Error
+        500:
+          description: Server down
+
+  /exchange/user/all-users:
+    get:
+      tags:
+        - Exchange
+      produces:
+        - application/json
+      security:
+        - Bearer: []
+        - API_SECRET_KEY: []
+      parameters:
+        - in: query
+          name: name
+        - in: query
+          name: email
+        - in: query
+          name: username
+        - in: query
+          name: verifiedEmail
+          type: boolean
+        - in: query
+          name: verifiedPhone
+          type: boolean
+        - in: query
+          name: active
+          type: boolean
+        - in: query
+          name: isDeleted
+          type: boolean
+        - in: query
+          name: gender
+        - in: query
+          name: dob
+        - in: query
+          name: phone
+        - in: query
+          name: permissions
+          type: array
+          items:
+            type: string
+        - in: query
+          name: role
+          enum: ["admin", "user"]
+        - in: query
+          name: page
+          type: integer
+          default: 1
+        - in: query
+          name: pageSize
+          type: integer
+          default: 10
+      responses:
+        200:
+          description: Success
+        400:
+          description: Error
+        500:
+          description: Server down
+
+  # Wallets
+
+  /exchange/wallets:
+    get:
+      tags:
+        - Exchange
+      produces:
+        - application/json
+      security:
+        - Bearer: []
+        - API_SECRET_KEY: []
+      responses:
+        200:
+          description: Success
+        400:
+          description: Error
+        500:
+          description: Server down
+
+
+  /exchange/wallet:
+    get:
+      tags:
+        - Exchange
+      produces:
+        - application/json
+      security:
+        - Bearer: []
+        - API_SECRET_KEY: []
+      parameters:
+        - in: query
+          name: token
+          enum: ["alt", "kwt"]
+          required: true
+      responses:
+        200:
+          description: Success
+        400:
+          description: Error
+        500:
+          description: Server down

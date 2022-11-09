@@ -2,7 +2,7 @@ import { isTestnet } from "../env";
 
 const seedDefaultUser = async (models: any) =>
   models.User.create({
-    email: "admin@keeway.link",
+    email: "admin@trace.exchange",
     firstName: "Claret",
     lastName: "Nnamocha",
     password: "Password123!",

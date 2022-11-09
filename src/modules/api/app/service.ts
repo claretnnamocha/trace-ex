@@ -219,7 +219,7 @@ export const generateWallet = async (
   params: api.app.GenerateWalletAddress
 ): Promise<others.Response> => {
   try {
-    const {
+    let {
       appId,
       contactEmail,
       blockchain,
@@ -229,6 +229,7 @@ export const generateWallet = async (
       addressValidity,
       targetAmount,
       symbol,
+      index,
     } = params;
 
     const token: SupportedTokenSchema = await SupportedToken.findOne({
@@ -237,14 +238,17 @@ export const generateWallet = async (
 
     if (!token) return { status: false, message: "Token not found" };
 
-    let index: number = await Wallet.max("index", {
-      where: {
-        "token.blockchain": blockchain,
-        "token.network": network,
-        "token.symbol": symbol,
-      },
-    });
-    index = index === null ? 0 : index + 1;
+    if (!index) {
+      index = await Wallet.max("index", {
+        where: {
+          "token.blockchain": blockchain,
+          "token.network": network,
+          "token.symbol": symbol,
+        },
+      });
+      index = index === null ? 0 : index + 1;
+    }
+
     let address: string;
 
     switch (blockchain) {

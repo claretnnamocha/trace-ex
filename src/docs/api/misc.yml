@@ -2,8 +2,8 @@ securityDefinitions:
   API_SECRET_KEY:
     type: apiKey
     in: header
-    name: Authorization
-    description: Wallet secret key with prefix 'Bearer '
+    name: "x-api-key"
+    description: Wallet secret key
 
 security:
   - API_SECRET_KEY: []

@@ -1,14 +1,16 @@
 import { Model } from "sequelize/types";
+import { App } from "./App";
 
-export interface User {
+export interface ExchangeUser {
   id?: string;
   firstName?: string;
   lastName?: string;
+  app?: App;
   username?: string;
   email?: string;
   phone?: string;
   password?: string;
-  location?: string;
+  index?: number;
   isDeleted?: boolean;
   verifiedEmail?: boolean;
   verifiedPhone?: boolean;
@@ -23,4 +25,4 @@ export interface User {
   updatedAt?: Date;
 }
 
-export interface UserSchema extends Model<User>, User {}
+export interface ExchangeUserSchema extends Model<ExchangeUser>, ExchangeUser {}

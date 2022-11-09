@@ -11,9 +11,12 @@ export const authenticateKey = async (
   next: NextFunction
 ) => {
   try {
-    const { authorization } = req.headers;
+    // @ts-ignore
+    const authorization: string = req.headers["x-api-key"];
 
-    if (!authorization || !authorization.startsWith("Bearer ")) {
+    console.log(authorization);
+    
+    if (!authorization) {
       return response(
         res,
         { status: false, message: "Incorrect or Malformed API Key!" },

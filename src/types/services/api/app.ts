@@ -21,6 +21,7 @@ export interface GenerateWalletAddress {
   blockchain: string;
   addressValidity?: number;
   targetAmount?: number;
+  index?: number;
 }
 
 export interface GetWalletAddress {
