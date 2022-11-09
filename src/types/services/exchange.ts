@@ -92,3 +92,11 @@ export interface GetAll {
   page?: number;
   pageSize?: number;
 }
+
+export interface SendCrypto {
+  userId: string;
+  token: string;
+  to: string;
+  amount: number;
+  network: string;
+}

@@ -219,7 +219,7 @@ export const generateWallet = async (
   params: api.app.GenerateWalletAddress
 ): Promise<others.Response> => {
   try {
-    let {
+    const {
       appId,
       contactEmail,
       blockchain,
@@ -229,8 +229,8 @@ export const generateWallet = async (
       addressValidity,
       targetAmount,
       symbol,
-      index,
     } = params;
+    let { index } = params;
 
     const token: SupportedTokenSchema = await SupportedToken.findOne({
       where: { network, blockchain, symbol },
@@ -501,7 +501,7 @@ export const sendCrypto = async (
         });
 
         if (symbol === "alt") {
-          const { hash } = await ethers.sendEther({
+          const { hash } = await ethers.sendNativeToken({
             reciever: to,
             amount,
             privateKey,

@@ -368,7 +368,6 @@ paths:
         500:
           description: Server down
 
-
   /exchange/wallet:
     get:
       tags:
@@ -387,6 +386,53 @@ paths:
           name: network
           enum: ["zksync-goerli", "altlayer-devnet"]
           required: true
+      responses:
+        200:
+          description: Success
+        400:
+          description: Error
+        500:
+          description: Server down
+
+  /exchange/transactions:
+    get:
+      tags:
+        - Exchange
+      produces:
+        - application/json
+      security:
+        - Bearer: []
+        - API_SECRET_KEY: []
+      parameters:
+        - in: query
+          name: token
+          enum: ["alt", "kwt"]
+        - in: query
+          name: network
+          enum: ["zksync-goerli", "altlayer-devnet"]
+      responses:
+        200:
+          description: Success
+        400:
+          description: Error
+        500:
+          description: Server down
+
+  /exchange/send-crypto-l2:
+    post:
+      tags:
+        - Exchange
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: request
+          required: true
+          schema:
+            $ref: "#/definitions/sendCrypto"
+      security:
+        - Bearer: []
+        - API_SECRET_KEY: []
       responses:
         200:
           description: Success

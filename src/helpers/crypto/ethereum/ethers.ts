@@ -384,7 +384,7 @@ export const getERC20TokenBalance = async ({
   return new BigNumber(balance.toString()).toNumber();
 };
 
-export const sendEther = async ({
+export const sendNativeToken = async ({
   reciever,
   amount,
   privateKey,
@@ -398,10 +398,11 @@ export const sendEther = async ({
   const provider = PROVIDER({ network });
   const to = ethers.utils.getAddress(reciever);
   const { address } = new Wallet(privateKey);
+  const realAmount = new BigNumber(amount)
+    .multipliedBy(10 ** DECIMALS)
+    .toString(16);
 
-  const value = ethers.utils.hexlify(
-    Math.floor(new BigNumber(amount).multipliedBy(10 ** DECIMALS).toNumber())
-  );
+  const value = `0x${realAmount}`;
 
   const balance = await provider.getBalance(address);
 

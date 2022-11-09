@@ -85,3 +85,22 @@ export const getWallet = {
     .lowercase()
     .required(),
 };
+
+export const transactions = {
+  token: Joi.string().valid(...validAssets),
+  network: Joi.string()
+    .valid(...validNetworks)
+    .insensitive()
+    .lowercase(),
+};
+
+export const sendL2 = {
+  to: Joi.string().required(),
+  amount: Joi.number().required(),
+  token: Joi.string()
+    .valid(...validAssets)
+    .required(),
+  network: Joi.string()
+    .valid(...validNetworks)
+    .required(),
+};

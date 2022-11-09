@@ -103,4 +103,16 @@ routes.get(
   controller(service.getWallet)
 );
 
+routes.get(
+  "/transactions",
+  validate(validator.transactions),
+  controller(service.getTransactions)
+);
+
+routes.post(
+  "/send-crypto-l2",
+  validate(validator.sendL2),
+  controller(service.sendL2)
+);
+
 export default routes;

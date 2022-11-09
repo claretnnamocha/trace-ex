@@ -1,20 +1,31 @@
 import bcrypt from "bcryptjs";
+import BigNumber from "bignumber.js";
 import ejs from "ejs";
 import { authenticator } from "otplib";
 import path from "path";
 import { Op } from "sequelize";
 import { v4 as uuid } from "uuid";
 import { displayName } from "../../../package.json";
+import { spenderPrivateKey } from "../../configs/env";
 import { jwt, sms } from "../../helpers";
+import { ethers } from "../../helpers/crypto/ethereum";
 import { sendEmail } from "../../jobs";
-import { App, ExchangeUser, SupportedToken, Wallet } from "../../models";
+import {
+  App,
+  ExchangeUser,
+  SupportedToken,
+  Transaction,
+  Wallet,
+} from "../../models";
 import {
   AppSchema,
   ExchangeUserSchema,
   SupportedTokenSchema,
+  WalletSchema,
 } from "../../types/models";
 import { exchange, others } from "../../types/services";
 import { generateWallet } from "../api/app/service";
+import { updateWalletBalance } from "../api/utils/service";
 
 const { FRONTEND_BASEURL } = process.env;
 
@@ -960,6 +971,146 @@ export const getWallet = async (
       payload: {
         status: false,
         message: "Error trying to get wallet",
+        error,
+      },
+      code: 500,
+    };
+  }
+};
+
+/**
+ * Get user wallet
+ * @param {exchange.GetWallet} params  Request Body
+ * @returns {others.Response} Contains status, message and data if any of the operation
+ */
+export const getTransactions = async (
+  params: exchange.GetWallet
+): Promise<others.Response> => {
+  try {
+    const { userId, token, network } = params;
+
+    const user: ExchangeUserSchema = await ExchangeUser.findByPk(userId);
+
+    if (!user) {
+      return {
+        payload: { status: false, message: "Profile does not exist" },
+        code: 404,
+      };
+    }
+    let where: any = { "wallet.index": user.index };
+
+    if (token) where = { ...where, "wallet.token.symbol": token };
+    if (network) where = { ...where, "wallet.token.network": network };
+
+    const data = await Transaction.findAll({ where });
+
+    return { status: true, message: "Transactions", data };
+  } catch (error) {
+    console.log(error.message);
+
+    return {
+      payload: {
+        status: false,
+        message: "Error trying to get transactions",
+        error,
+      },
+      code: 500,
+    };
+  }
+};
+
+/**
+ * Send on L2
+ * @param {exchange.GetWallet} params  Request Body
+ * @returns {others.Response} Contains status, message and data if any of the operation
+ */
+export const sendL2 = async (
+  params: exchange.SendCrypto
+): Promise<others.Response> => {
+  try {
+    const { userId, token: symbol, network, amount, to } = params;
+
+    const user: ExchangeUserSchema = await ExchangeUser.findByPk(userId);
+
+    if (!user) {
+      return {
+        payload: { status: false, message: "Profile does not exist" },
+        code: 404,
+      };
+    }
+
+    const wallet: WalletSchema = await Wallet.findOne({
+      where: {
+        index: user.index,
+        "token.symbol": symbol,
+        "token.network": network,
+      },
+    });
+
+    const realAmount = new BigNumber(amount)
+      .multipliedBy(10 ** wallet.token.decimals)
+      .toFixed();
+
+    if (new BigNumber(realAmount).gte(wallet.platformBalance))
+      return { status: false, message: "Insufficient balance" };
+
+    if (!wallet) {
+      return {
+        payload: { status: false, message: "Wallet does not exist" },
+        code: 404,
+      };
+    }
+    let transaction: any;
+
+    switch (network) {
+      case "altlayer-devnet":
+        if (wallet.token.isNativeToken) {
+          transaction = await ethers.sendNativeToken({
+            network,
+            amount,
+            privateKey: spenderPrivateKey,
+            reciever: to,
+          });
+        } else {
+          transaction = await ethers.sendERC20Token({
+            network,
+            amount,
+            privateKey: spenderPrivateKey,
+            reciever: to,
+            contractAddress: wallet.token.contractAddress,
+          });
+        }
+        break;
+      default:
+        return { status: false, message: "Network not found" };
+    }
+
+    if (!transaction) return { status: false, message: "Transaction failed" };
+
+    await updateWalletBalance({
+      transaction,
+      type: "debit",
+      amount: realAmount,
+      confirmed: true,
+      walletId: wallet.id,
+    });
+
+    return {
+      status: true,
+      message: "Crypto has been sent on L2",
+      data: {
+        amount,
+        hash: transaction.hash,
+        network,
+        token: symbol.toUpperCase(),
+        reciever: to,
+      },
+    };
+  } catch (error) {
+    return {
+      payload: {
+        status: false,
+        message: "Error trying to send crypto",
         error,
       },
       code: 500,
