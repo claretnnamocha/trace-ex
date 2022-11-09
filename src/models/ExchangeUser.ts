@@ -88,7 +88,6 @@ ExchangeUser.prototype.toJSON = function toJSON() {
   delete data.isDeleted;
   delete data.id;
   delete data.app;
-  delete data.index;
   return data;
 };
 

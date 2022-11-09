@@ -12,18 +12,15 @@ export const authenticateKey = async (
 ) => {
   try {
     // @ts-ignore
-    const authorization: string = req.headers["x-api-key"];
+    const secretKey: string = req.headers["x-api-key"];
 
-    console.log(authorization);
-    
-    if (!authorization) {
+    if (!secretKey) {
       return response(
         res,
         { status: false, message: "Incorrect or Malformed API Key!" },
         401
       );
     }
-    const secretKey = authorization.replace("Bearer ", "");
 
     const app: AppSchema = await App.findOne({
       where: { isDeleted: false, secretKey },

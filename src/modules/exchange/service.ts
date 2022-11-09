@@ -65,7 +65,7 @@ export const signUp = async (
       await generateWallet({
         appId,
         blockchain,
-        contactEmail: undefined,
+        contactEmail: email,
         network,
         symbol,
         index: walletIndex,

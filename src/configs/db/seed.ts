@@ -12,6 +12,37 @@ const seedDefaultUser = async (models: any) =>
     verifiedEmail: true,
   });
 
+const seedExchangeUser = async (models: any, app: any) => {
+  let walletIndex: number = await models.Wallet.max("index");
+  walletIndex = walletIndex === null ? 0 : walletIndex + 1;
+
+  models.ExchangeUser.create({
+    email: "admin@trace.exchange",
+    firstName: "Claret",
+    lastName: "Nnamocha",
+    password: "Password123!",
+    phone: "+2349000000000",
+    app,
+    verifiedEmail: true,
+    index: walletIndex,
+  });
+  const { generateWallet } = await import("../../modules/api/app/service");
+  const tokens = await models.SupportedToken.findAll({
+    where: { verified: true },
+  });
+  for (let index = 0; index < tokens.length; index += 1) {
+    const { blockchain, network, symbol } = tokens[index];
+    await generateWallet({
+      appId: app.id,
+      blockchain,
+      contactEmail: "admin@trace.exchange",
+      network,
+      symbol,
+      index: walletIndex,
+    });
+  }
+};
+
 const seedDefaultApp = async (user: any) => {
   const id = "b5d797c1-dc90-4230-8510-4df5026ccff9";
   const webhookUrl = "https://eoz0svlp6qduwmn.m.pipedream.net";
@@ -131,7 +162,11 @@ export const seed = async (models: any) => {
   console.log("Complete!\n");
 
   console.log("Seeding default app");
-  await seedDefaultApp(user);
+  const app = await seedDefaultApp(user);
+  console.log("Complete!\n");
+
+  console.log("Seeding exchange user");
+  await seedExchangeUser(models, app);
   console.log("Complete!\n");
 
   // todo: plant other db seeds 😎
