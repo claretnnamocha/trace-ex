@@ -1,6 +1,13 @@
+import { config } from "dotenv";
 import { jobs } from "../helpers";
 
-export const EmailQueue = jobs.create({ queueName: "email" });
-export const ListeningQueue = jobs.create({
+config();
+
+// export const EmailQueue = jobs.bulljs.create({ queueName: "email" });
+export const EmailQueue = jobs.agenda.create({
+  queueName: "email",
+  options: {},
+});
+export const ListeningQueue = jobs.bulljs.create({
   queueName: "onChainTransactionListener",
 });

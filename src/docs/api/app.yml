@@ -189,3 +189,7 @@ definitions:
         enum:
           ["altlayer-devnet", "metis-goerli", "zksync-goerli", "zksync-mainnet"]
         required: true
+      blockchain:
+        type: string
+        enum: ["ethereum"]
+        required: true

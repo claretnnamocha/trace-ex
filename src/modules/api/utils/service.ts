@@ -2,8 +2,9 @@ import { BigNumber } from "bignumber.js";
 import sequelize, { Op } from "sequelize";
 import { altlayer, ethers, zksync } from "../../../helpers/crypto/ethereum";
 import { NormalizedTransaction } from "../../../helpers/crypto/ethereum/ethers";
-import { SupportedToken, Transaction, Wallet } from "../../../models";
+import { App, SupportedToken, Transaction, Wallet } from "../../../models";
 import {
+  AppSchema,
   SupportedTokenSchema,
   TransactionSchema,
   WalletSchema,
@@ -89,9 +90,15 @@ export const updateWalletBalance = async (
   params: api.utils.UpdateWalletBalance
 ): Promise<others.Response> => {
   try {
-    const { walletId, transaction, amount, type, confirmed } = params;
+    const { walletId, transaction, amount, type, confirmed, appId } = params;
 
-    const wallet: WalletSchema = await Wallet.findByPk(walletId);
+    let wallet: WalletSchema | any;
+
+    if (walletId) wallet = await Wallet.findByPk(walletId);
+    else if (appId) {
+      const app: AppSchema = await App.findByPk(appId);
+      wallet = { app };
+    }
 
     await Transaction.create({
       wallet,

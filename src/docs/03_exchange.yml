@@ -418,7 +418,7 @@ paths:
         500:
           description: Server down
 
-  /exchange/send-crypto-l2:
+  /exchange/send-crypto:
     post:
       tags:
         - Exchange

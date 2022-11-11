@@ -5,6 +5,7 @@ const JoiPhone = Joi.extend(require("joi-phone-number"));
 
 const validAssets = ["alt", "kwt"];
 const validNetworks = ["zksync-goerli", "altlayer-devnet"];
+const validBlockchains = ["ethereum"];
 
 export const signIn = {
   user: Joi.string().required(),
@@ -102,5 +103,8 @@ export const sendL2 = {
     .required(),
   network: Joi.string()
     .valid(...validNetworks)
+    .required(),
+  blockchain: Joi.string()
+    .valid(...validBlockchains)
     .required(),
 };

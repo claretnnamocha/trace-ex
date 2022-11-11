@@ -14,14 +14,7 @@ export const drainActiveWalletAddresses = async () => {
   await queue.clean(0);
   await queue.empty();
 
-  await jobs.add({
-    queue,
-    options: { repeat: { every: 10 * 1000 } },
-    queueName,
-    data: null,
-  });
-
-  await jobs.process({
+  await jobs.bulljs.process({
     queueName,
     queue,
     callback: async () => {
@@ -85,5 +78,12 @@ export const drainActiveWalletAddresses = async () => {
         }
       }
     },
+  });
+
+  await jobs.bulljs.add({
+    queue,
+    options: { repeat: { every: 10 * 1000 } },
+    queueName,
+    data: null,
   });
 };

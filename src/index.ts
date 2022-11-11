@@ -1,3 +1,5 @@
+import { config } from "dotenv";
+
 import cors from "cors";
 import express, { Request, Response } from "express";
 import formdata from "express-form-data";
@@ -8,6 +10,8 @@ import { debug, isTestnet } from "./configs/env";
 import { response } from "./helpers";
 import { listenForOnChainTransactions } from "./jobs";
 import routes from "./routes";
+
+config();
 
 const app = express();
 const { port, clearDb } = env;

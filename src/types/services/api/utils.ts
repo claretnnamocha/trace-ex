@@ -14,9 +14,10 @@ export interface LogWalletTransactions {
 }
 
 export interface UpdateWalletBalance {
-  walletId: string;
+  appId?: string;
+  walletId?: string;
   transaction: any;
   amount: string;
   type: string;
-  confirmed: boolean;
+  confirmed?: boolean;
 }

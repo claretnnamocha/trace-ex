@@ -1,16 +1,13 @@
 import { BigNumber } from "bignumber.js";
-import {
-  HD_PATH,
-  SALT,
-  WALLET_FACTORY_ADDRESS,
-} from "../../../configs/constants";
+import { SALT, WALLET_FACTORY_ADDRESS } from "../../../configs/constants";
 import { db } from "../../../configs/db";
-import { mnemonic } from "../../../configs/env";
+import { spenderPrivateKey } from "../../../configs/env";
 import { ethers } from "../../../helpers/crypto/ethereum";
 import { App, SupportedToken, User, Wallet } from "../../../models";
 import { AppSchema, UserSchema, WalletSchema } from "../../../types/models";
 import { SupportedTokenSchema } from "../../../types/models/SupportedToken";
 import { api, others } from "../../../types/services";
+import { updateWalletBalance } from "../utils/service";
 
 /**
  * Creates a new Keeway app
@@ -466,95 +463,6 @@ export const getAppWallets = async (
   }
 };
 
-/**
- * Get App's wallets
- * @param {api.app.SendCrypto} params  Request Body
- * @returns {others.Response} Contains status, message and data if any of the operation
- */
-export const sendCrypto = async (
-  params: api.app.SendCrypto
-): Promise<others.Response> => {
-  try {
-    const { amount, network, token: symbol, to, blockchain } = params;
-
-    const token: SupportedTokenSchema = await SupportedToken.findOne({
-      where: { symbol, network },
-    });
-
-    if (!token) {
-      return {
-        code: 404,
-        payload: { message: "Token not found", status: false },
-      };
-    }
-
-    let data: any;
-
-    switch (blockchain) {
-      case "ethereum": {
-        const path = HD_PATH(0);
-        const { privateKey } = ethers.getWalletFromMnemonic({
-          mnemonic,
-          path,
-          // @ts-ignore
-          network,
-        });
-
-        if (symbol === "alt") {
-          const { hash } = await ethers.sendNativeToken({
-            reciever: to,
-            amount,
-            privateKey,
-            // @ts-ignore
-            network,
-          });
-          data = { hash };
-        } else {
-          const { contractAddress } = token;
-          const { hash } = await ethers.sendERC20Token({
-            reciever: to,
-            amount,
-            privateKey,
-            contractAddress,
-            // @ts-ignore
-            network,
-          });
-          data = { hash };
-        }
-        break;
-      }
-
-      default:
-        return {
-          status: false,
-          message: "This blockchain is not supported yet",
-        };
-    }
-
-    return {
-      status: true,
-      message: "Crypto sent",
-      data: {
-        ...data,
-        amount,
-        blockchain,
-        token: symbol,
-        recipient: to,
-        network,
-      },
-    };
-  } catch (error) {
-    return {
-      payload: {
-        status: false,
-        message: "Error trying to send crypto",
-        error,
-      },
-      code: 500,
-    };
-  }
-};
-
 const getTotal = async (params: any): Promise<others.Response> => {
   try {
     const { appId, token, type } = params;
@@ -675,6 +583,103 @@ export const getAppBalances = async (
       payload: {
         status: false,
         message: "Error trying to get app balances",
+        error,
+      },
+      code: 500,
+    };
+  }
+};
+
+/**
+ * Get App's wallets
+ * @param {api.app.SendCrypto} params  Request Body
+ * @returns {others.Response} Contains status, message and data if any of the operation
+ */
+export const sendCrypto = async (
+  params: api.app.SendCrypto
+): Promise<others.Response> => {
+  try {
+    const { amount, network, token: symbol, to, blockchain, appId } = params;
+
+    const token: SupportedTokenSchema = await SupportedToken.findOne({
+      where: { symbol, network },
+    });
+
+    if (!token) {
+      return {
+        code: 404,
+        payload: { message: "Token not found", status: false },
+      };
+    }
+
+    const {
+      data: { balance },
+    }: any = await getAppBalance({ appId, token: token.symbol });
+
+    const realAmount = new BigNumber(amount)
+      .multipliedBy(10 ** token.decimals)
+      .toFixed();
+
+    if (
+      new BigNumber(realAmount).gte(
+        new BigNumber(balance).multipliedBy(10 ** token.decimals)
+      )
+    )
+      return { status: false, message: "Insufficient balance" };
+
+    let transaction: any;
+
+    if (blockchain === "ethereum") {
+      switch (network) {
+        case "altlayer-devnet":
+          if (token.isNativeToken) {
+            transaction = await ethers.sendNativeToken({
+              network,
+              amount,
+              privateKey: spenderPrivateKey,
+              reciever: to,
+            });
+          } else {
+            transaction = await ethers.sendERC20Token({
+              network,
+              amount,
+              privateKey: spenderPrivateKey,
+              reciever: to,
+              contractAddress: token.contractAddress,
+            });
+          }
+          break;
+        default:
+          return { status: false, message: "Network not found" };
+      }
+    }
+
+    if (!transaction) return { status: false, message: "Transaction failed" };
+
+    await updateWalletBalance({
+      transaction,
+      type: "debit",
+      amount: realAmount,
+      appId,
+    });
+
+    return {
+      status: true,
+      message: "Crypto sent",
+      data: {
+        amount,
+        hash: transaction.hash,
+        network,
+        token: symbol.toUpperCase(),
+        recipient: to,
+        blockchain,
+      },
+    };
+  } catch (error) {
+    return {
+      payload: {
+        status: false,
+        message: "Error trying to send crypto",
         error,
       },
       code: 500,

@@ -1018,15 +1018,15 @@ export const getTransactions = async (
 };
 
 /**
- * Send on L2
+ * Send crypto
  * @param {exchange.GetWallet} params  Request Body
  * @returns {others.Response} Contains status, message and data if any of the operation
  */
-export const sendL2 = async (
+export const sendCrypto = async (
   params: exchange.SendCrypto
 ): Promise<others.Response> => {
   try {
-    const { userId, token: symbol, network, amount, to } = params;
+    const { userId, token: symbol, network, amount, to, blockchain } = params;
 
     const user: ExchangeUserSchema = await ExchangeUser.findByPk(userId);
 
@@ -1042,6 +1042,7 @@ export const sendL2 = async (
         index: user.index,
         "token.symbol": symbol,
         "token.network": network,
+        "token.blockchain": blockchain,
       },
     });
 
@@ -1060,27 +1061,29 @@ export const sendL2 = async (
     }
     let transaction: any;
 
-    switch (network) {
-      case "altlayer-devnet":
-        if (wallet.token.isNativeToken) {
-          transaction = await ethers.sendNativeToken({
-            network,
-            amount,
-            privateKey: spenderPrivateKey,
-            reciever: to,
-          });
-        } else {
-          transaction = await ethers.sendERC20Token({
-            network,
-            amount,
-            privateKey: spenderPrivateKey,
-            reciever: to,
-            contractAddress: wallet.token.contractAddress,
-          });
-        }
-        break;
-      default:
-        return { status: false, message: "Network not found" };
+    if (blockchain === "ethereum") {
+      switch (network) {
+        case "altlayer-devnet":
+          if (wallet.token.isNativeToken) {
+            transaction = await ethers.sendNativeToken({
+              network,
+              amount,
+              privateKey: spenderPrivateKey,
+              reciever: to,
+            });
+          } else {
+            transaction = await ethers.sendERC20Token({
+              network,
+              amount,
+              privateKey: spenderPrivateKey,
+              reciever: to,
+              contractAddress: wallet.token.contractAddress,
+            });
+          }
+          break;
+        default:
+          return { status: false, message: "Network not found" };
+      }
     }
 
     if (!transaction) return { status: false, message: "Transaction failed" };
@@ -1095,13 +1098,14 @@ export const sendL2 = async (
 
     return {
       status: true,
-      message: "Crypto has been sent on L2",
+      message: "Crypto sent",
       data: {
         amount,
         hash: transaction.hash,
         network,
         token: symbol.toUpperCase(),
         reciever: to,
+        blockchain,
       },
     };
   } catch (error) {

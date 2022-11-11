@@ -110,9 +110,9 @@ routes.get(
 );
 
 routes.post(
-  "/send-crypto-l2",
+  "/send-crypto",
   validate(validator.sendL2),
-  controller(service.sendL2)
+  controller(service.sendCrypto)
 );
 
 export default routes;
