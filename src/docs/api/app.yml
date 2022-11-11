@@ -70,6 +70,43 @@ paths:
         500:
           description: Server down
 
+  /api/app/balance:
+    get:
+      tags:
+        - API - App
+      produces:
+        - application/json
+      parameters:
+        - in: query
+          name: token
+          enum: ["kwt", "alt"]
+          required: true
+      security:
+        - API_SECRET_KEY: []
+      responses:
+        200:
+          description: Success
+        400:
+          description: Error
+        500:
+          description: Server down
+
+  /api/app/balances:
+    get:
+      tags:
+        - API - App
+      produces:
+        - application/json
+      security:
+        - API_SECRET_KEY: []
+      responses:
+        200:
+          description: Success
+        400:
+          description: Error
+        500:
+          description: Server down
+
   /api/app/default-wallets:
     get:
       tags:

@@ -554,3 +554,130 @@ export const sendCrypto = async (
     };
   }
 };
+
+const getTotal = async (params: any): Promise<others.Response> => {
+  try {
+    const { appId, token, type } = params;
+
+    const queryCredit = `
+    SELECT
+      CAST("wallet" ->> 'token' AS JSONB) ->> 'symbol' AS "token",
+      SUM((CAST(transaction. "amount" AS DECIMAL) / pow(10, CAST(CAST(wallet ->> 'token' AS JSONB) ->> 'decimals' AS INTEGER)))) AS "balance"
+    FROM
+      "transaction"
+    WHERE
+      CAST(wallet ->> 'app' AS JSONB) ->> 'id' = 'b5d797c1-dc90-4230-8510-4df5026ccff9'
+      AND "type" = :type
+      ${
+        token
+          ? "AND CAST(\"wallet\" ->> 'token' AS JSONB) ->> 'symbol' = :token"
+          : ""
+      }
+    GROUP BY
+      "token"
+  `;
+
+    const replacements: any = { appId, token, type };
+
+    const [[data]]: any = await db.query(queryCredit, {
+      replacements,
+    });
+
+    return {
+      status: true,
+      message: `App ${type} total [${token}]`,
+      data,
+    };
+  } catch (error) {
+    return {
+      payload: {
+        status: false,
+        message: "Error trying to get app total",
+        error,
+      },
+      code: 500,
+    };
+  }
+};
+
+/**
+ * Get app balance
+ * @param {api.app.GetAppBalance} params  Request Body
+ * @returns {others.Response} Contains status, message and data if any of the operation
+ */
+export const getAppBalance = async (
+  params: api.app.GetAppBalance
+): Promise<others.Response> => {
+  try {
+    const { appId, token } = params;
+    const { data: { balance: credit = 0 } = {} }: any = await getTotal({
+      appId,
+      token,
+      type: "credit",
+    });
+
+    const { data: { balance: debit = 0 } = {} }: any = await getTotal({
+      appId,
+      token,
+      type: "debit",
+    });
+
+    const balance = new BigNumber(credit)
+      .minus(new BigNumber(debit))
+      .toNumber();
+
+    return {
+      status: true,
+      message: "App Balance",
+      data: { balance, token },
+    };
+  } catch (error) {
+    return {
+      payload: {
+        status: false,
+        message: "Error trying to get app balance",
+        error,
+      },
+      code: 500,
+    };
+  }
+};
+
+/**
+ * Get app balances
+ * @param {api.app.GetAppBalance} params  Request Body
+ * @returns {others.Response} Contains status, message and data if any of the operation
+ */
+export const getAppBalances = async (
+  params: api.app.GetAppBalance
+): Promise<others.Response> => {
+  try {
+    const { appId } = params;
+
+    const tokens: SupportedTokenSchema[] = await SupportedToken.findAll({
+      where: { verified: true },
+    });
+    const data: any = [];
+    for (let index = 0; index < tokens.length; index += 1) {
+      const { symbol: token } = tokens[index];
+      const { data: result }: any = await getAppBalance({ appId, token });
+
+      data.push(result);
+    }
+
+    return {
+      status: true,
+      message: "App Balances",
+      data,
+    };
+  } catch (error) {
+    return {
+      payload: {
+        status: false,
+        message: "Error trying to get app balances",
+        error,
+      },
+      code: 500,
+    };
+  }
+};

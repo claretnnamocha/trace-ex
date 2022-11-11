@@ -81,7 +81,6 @@ Wallet.prototype.toJSON = function toJSON() {
 
   delete data.active;
   delete data.isDeleted;
-  delete data.app;
   return data;
 };
 export { Wallet };

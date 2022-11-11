@@ -1006,8 +1006,6 @@ export const getTransactions = async (
 
     return { status: true, message: "Transactions", data };
   } catch (error) {
-    console.log(error.message);
-
     return {
       payload: {
         status: false,

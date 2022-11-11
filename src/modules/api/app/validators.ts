@@ -65,3 +65,9 @@ export const sendCrypto = {
     .valid(...validBlockchains)
     .required(),
 };
+
+export const getAppBalance = {
+  token: Joi.string()
+    .valid(...validAssets)
+    .required(),
+};

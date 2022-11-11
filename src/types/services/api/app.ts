@@ -29,6 +29,11 @@ export interface GetWalletAddress {
   reference?: string;
 }
 
+export interface GetAppBalance {
+  appId: string;
+  token?: string;
+}
+
 export interface APIAuthenticated {
   appId: string;
   page?: number;

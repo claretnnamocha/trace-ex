@@ -34,4 +34,12 @@ routes.post(
   controller(service.sendCrypto)
 );
 
+routes.get(
+  "/balance",
+  validate(validator.getAppBalance),
+  controller(service.getAppBalance)
+);
+
+routes.get("/balances", controller(service.getAppBalances));
+
 export default routes;
