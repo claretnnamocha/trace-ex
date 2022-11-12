@@ -1,41 +1,16 @@
+import { Job, JobAttributesData } from "agenda";
 import { v4 as uuid } from "uuid";
 import { jobs, mail } from "../helpers";
 import { EmailQueue } from "./queues";
 
-// export const sendEmail = async ({ to, text, subject, html }) => {
-//   const queueName = `sendEmail${uuid()}`;
-
-//   await jobs.bulljs.process({
-//     queueName,
-//     queue: EmailQueue,
-//     callback: async () => {
-//       const sent = await mail.pepipost.send({
-//         to,
-//         text,
-//         subject,
-//         html,
-//       });
-//       if (!sent) throw new Error("Email not sent");
-//     },
-//   });
-
-//   await jobs.bulljs.add({
-//     queue: EmailQueue,
-//     options: {
-//       attempts: 10,
-//       backoff: 30 * 1000,
-//     },
-//     queueName,
-//     data: null,
-//   });
-// };
-
 export const sendEmail = async ({ to, text, subject, html }) => {
-  const queueName = `sendEmail${uuid()}`;
+  console.log("Sending email 📧");
+  const queueName = `sendEmail-${uuid()}`;
+  const queue = EmailQueue;
 
   jobs.agenda.process({
     queueName,
-    queue: EmailQueue,
+    queue,
     callback: async () => {
       const sent = await mail.pepipost.send({
         to,
@@ -48,10 +23,17 @@ export const sendEmail = async ({ to, text, subject, html }) => {
   });
 
   await jobs.agenda.add({
-    queue: EmailQueue,
+    queue,
     queueName,
-    data: null,
+    data: { maxRetries: 3 },
   });
 
-  await EmailQueue.start();
+  queue.on(`fail:${queueName}`, async (_, job: Job<JobAttributesData>) => {
+    if (job.attrs.data.maxRetries >= job.attrs.failCount) {
+      job.repeatEvery("30 seconds");
+      await job.save();
+    }
+  });
+
+  await queue.start();
 };

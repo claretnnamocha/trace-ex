@@ -1,6 +1,7 @@
 paths:
-  /misc/ping:
+  /:
     get:
+      summary: API Info
       tags:
         - Misc
       produces:

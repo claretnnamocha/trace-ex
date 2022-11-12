@@ -5,6 +5,7 @@ import auth from "./modules/auth/routes";
 import exchange from "./modules/exchange/routes";
 import misc from "./modules/misc/routes";
 import user from "./modules/user/routes";
+import { displayName, version, author } from "../package.json";
 
 const routes = Router();
 
@@ -17,6 +18,14 @@ routes.use("/misc", misc);
 routes.use("/user", user);
 
 routes.use("/exchange", exchange);
+
+routes.use("", (_, res: Response) => {
+  response(res, {
+    status: true,
+    message: "API Info",
+    data: { displayName, version, author },
+  });
+});
 
 routes.use((_, res: Response) => {
   response(res, { status: false, message: "Route not found" }, 404);

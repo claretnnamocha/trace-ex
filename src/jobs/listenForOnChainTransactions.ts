@@ -6,15 +6,15 @@ import { WalletSchema } from "../types/models";
 import { ListeningQueue } from "./queues";
 
 export const listenForOnChainTransactions = async () => {
+  console.log("Listening for on-chain transactions 👂");
+  const queue = ListeningQueue;
   const queueName = `listenForOnChainTransactions-${uuid()}`;
 
-  const queue = ListeningQueue;
-  await queue.clean(0);
-  await queue.empty();
+  await queue.purge();
 
-  await jobs.bulljs.process({
+  jobs.agenda.process({
     queueName,
-    queue,
+    queue: ListeningQueue,
     callback: async () => {
       const wallets: Array<WalletSchema> = await Wallet.findAll({
         where: { active: true },
@@ -28,10 +28,14 @@ export const listenForOnChainTransactions = async () => {
     },
   });
 
-  await jobs.bulljs.add({
+  const job = await jobs.agenda.add({
     queue,
-    options: { repeat: { every: 10 * 1000 } },
     queueName,
     data: null,
   });
+
+  job.repeatEvery("15 seconds");
+  await job.save();
+
+  await queue.start();
 };

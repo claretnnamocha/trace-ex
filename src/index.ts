@@ -1,11 +1,10 @@
-import { config } from "dotenv";
-
 import cors from "cors";
+import { config } from "dotenv";
 import express, { Request, Response } from "express";
 import formdata from "express-form-data";
 import swaggerUi from "swagger-ui-express";
 import { displayName } from "../package.json";
-import { bullBoard, db, env, security, swagger, swaggerDev } from "./configs";
+import { agendaDash, db, env, security, swagger, swaggerDev } from "./configs";
 import { debug, isTestnet } from "./configs/env";
 import { response } from "./helpers";
 import { listenForOnChainTransactions } from "./jobs";
@@ -15,7 +14,6 @@ config();
 
 const app = express();
 const { port, clearDb } = env;
-db.authenticate({ clear: clearDb });
 
 app.use(formdata.parse());
 app.use(express.json({ limit: "100mb", type: "application/json" }));
@@ -29,7 +27,7 @@ app.use("/api/documentation", swaggerUi.serve, (_: Request, res: Response) =>
   res.send(swaggerUi.generateHTML(swaggerDev.config))
 );
 
-app.use("/bull-board", bullBoard.adapter.getRouter());
+agendaDash.setup(app);
 
 security.lock(app);
 
@@ -44,14 +42,17 @@ app.use((error: Error, _: Request, res: Response) =>
 );
 
 if (require.main) {
-  app.listen(port, () => {
+  app.listen(port, async () => {
+    await db.authenticate({ clear: clearDb });
     console.log(
       `${displayName} is running on http://localhost:${port} (${env.env}) (${
         isTestnet ? "testnet" : "mainnet"
       })`
     );
 
-    listenForOnChainTransactions();
+    setTimeout(() => {
+      listenForOnChainTransactions();
+    }, 5000);
   });
 }
 

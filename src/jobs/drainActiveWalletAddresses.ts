@@ -8,13 +8,13 @@ import { AppSchema, WalletSchema } from "../types/models";
 import { ListeningQueue } from "./queues";
 
 export const drainActiveWalletAddresses = async () => {
+  console.log("Draining sizeable wallets 🤓");
+  const queue = ListeningQueue;
   const queueName = `drainActiveWalletAddresses-${uuid()}`;
 
-  const queue = ListeningQueue;
-  await queue.clean(0);
-  await queue.empty();
+  await queue.purge();
 
-  await jobs.bulljs.process({
+  jobs.agenda.process({
     queueName,
     queue,
     callback: async () => {
@@ -80,10 +80,14 @@ export const drainActiveWalletAddresses = async () => {
     },
   });
 
-  await jobs.bulljs.add({
+  const job = await jobs.agenda.add({
     queue,
-    options: { repeat: { every: 10 * 1000 } },
     queueName,
     data: null,
   });
+
+  job.repeatEvery("15 minutes");
+  await job.save();
+
+  await queue.start();
 };

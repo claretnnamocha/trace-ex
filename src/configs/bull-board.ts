@@ -1,6 +1,7 @@
 import { createBullBoard } from "@bull-board/api";
 import { BullAdapter } from "@bull-board/api/bullAdapter";
 import { ExpressAdapter } from "@bull-board/express";
+import { Express } from "express";
 
 import * as queues from "../jobs/queues";
 
@@ -13,4 +14,7 @@ createBullBoard({
 
 serverAdapter.setBasePath("/bull-board");
 
-export const adapter = serverAdapter;
+const adapter = serverAdapter;
+
+export const setup = (app: Express) =>
+  app.use("/bull-board", adapter.getRouter());

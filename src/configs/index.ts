@@ -1,3 +1,4 @@
+export * as agendaDash from "./agenda-dash";
 export * as bullBoard from "./bull-board";
 export * as db from "./db";
 export * as env from "./env";
