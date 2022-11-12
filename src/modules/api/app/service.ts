@@ -602,15 +602,14 @@ export const sendCrypto = async (
     const { amount, network, token: symbol, to, blockchain, appId } = params;
 
     const token: SupportedTokenSchema = await SupportedToken.findOne({
-      where: { symbol, network },
+      where: { symbol, network, blockchain },
     });
 
-    if (!token) {
+    if (!token)
       return {
         code: 404,
         payload: { message: "Token not found", status: false },
       };
-    }
 
     const {
       data: { balance },

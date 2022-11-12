@@ -6,12 +6,6 @@ import * as validator from "./validators";
 const routes = Router();
 
 routes.post(
-  "/transfer",
-  validate(validator.l2Transfer),
-  controller(auth.transfer)
-);
-
-routes.post(
   "/deposit",
   validate(validator.l2Transfer),
   controller(auth.deposit)
