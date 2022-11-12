@@ -1,26 +1,4 @@
 paths:
-  /api/app/l2/transfer:
-    post:
-      tags:
-        - API - App - L2
-      produces:
-        - application/json
-      parameters:
-        - in: body
-          name: request
-          required: true
-          schema:
-            $ref: "#/definitions/transferL2"
-      security:
-        - API_SECRET_KEY: []
-      responses:
-        200:
-          description: Success
-        400:
-          description: Error
-        500:
-          description: Server down
-
   /api/app/l2/deposit:
     post:
       tags:
@@ -64,22 +42,3 @@ paths:
           description: Error
         500:
           description: Server down
-
-definitions:
-  transferL2:
-    type: object
-    properties:
-      to:
-        type: string
-        required: true
-      amount:
-        type: number
-        required: true
-      token:
-        type: string
-        enum: ["alt", "kwt"]
-        required: true
-      network:
-        type: string
-        enum:
-          ["altlayer-devnet", "metis-goerli", "zksync-goerli", "zksync-mainnet"]
