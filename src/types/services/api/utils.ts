@@ -21,3 +21,7 @@ export interface UpdateWalletBalance {
   type: string;
   confirmed?: boolean;
 }
+
+export interface DrainWallet {
+  walletId?: string;
+}

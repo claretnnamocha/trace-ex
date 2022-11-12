@@ -90,7 +90,6 @@ User.prototype.toJSON = function toJSON() {
 
   delete data.totp;
   delete data.password;
-  delete data.token;
   delete data.loginValidFrom;
   delete data.role;
   delete data.permissions;

@@ -8,6 +8,7 @@ import { agendaDash, db, env, security, swagger, swaggerDev } from "./configs";
 import { debug, isTestnet } from "./configs/env";
 import { response } from "./helpers";
 import { listenForOnChainTransactions } from "./jobs";
+import { ListeningQueue } from "./jobs/queues";
 import routes from "./routes";
 
 config();
@@ -50,8 +51,10 @@ if (require.main) {
       })`
     );
 
-    setTimeout(() => {
+    setTimeout(async () => {
+      await ListeningQueue.purge();
       listenForOnChainTransactions();
+      // drainActiveWalletAddresses();
     }, 5000);
   });
 }

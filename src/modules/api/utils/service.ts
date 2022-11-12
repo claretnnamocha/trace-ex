@@ -1,5 +1,7 @@
 import { BigNumber } from "bignumber.js";
 import sequelize, { Op } from "sequelize";
+import { SALT, WALLET_FACTORY_ADDRESS } from "../../../configs/constants";
+import { spenderPrivateKey } from "../../../configs/env";
 import { altlayer, ethers, zksync } from "../../../helpers/crypto/ethereum";
 import { NormalizedTransaction } from "../../../helpers/crypto/ethereum/ethers";
 import { App, SupportedToken, Transaction, Wallet } from "../../../models";
@@ -327,6 +329,92 @@ export const updateWalletTransactions = async (
       payload: {
         status: false,
         message: "Error trying to update wallet transactions",
+        error,
+      },
+      code: 500,
+    };
+  }
+};
+
+/**
+ * Update wallet balance
+ * @param {api.utils.DrainWallet} params  Request Body
+ * @returns {others.Response} Contains status, message and data if any of the operation
+ */
+export const drainWalletOnChain = async (
+  params: api.utils.DrainWallet
+): Promise<others.Response> => {
+  try {
+    const { walletId } = params;
+
+    const {
+      address,
+      token: {
+        minimumDrainAmount,
+        decimals,
+        network,
+        isNativeToken,
+        contractAddress: tokenAddress,
+        blockchain,
+      },
+      app: { id: appId },
+      index: walletIndex,
+    }: WalletSchema = await Wallet.findByPk(walletId);
+
+    const contractAddress = await WALLET_FACTORY_ADDRESS();
+
+    if (blockchain === "ethereum") {
+      switch (network) {
+        case "altlayer-devnet": {
+          const walletFactory = ethers.getFactory({
+            contractAddress,
+            network,
+            privateKey: spenderPrivateKey,
+          });
+
+          const { secretKey }: AppSchema = await App.findByPk(appId);
+          const salt = SALT({ walletIndex, secretKey });
+
+          const balance = isNativeToken
+            ? await ethers.getNativeTokenBalance({
+                address,
+                network,
+              })
+            : await ethers.getERC20TokenBalance({
+                address,
+                network,
+                contractAddress: tokenAddress,
+              });
+
+          const min = new BigNumber(minimumDrainAmount).multipliedBy(
+            10 ** decimals
+          );
+
+          if (min.gt(new BigNumber(balance)))
+            return { status: false, message: "Amount too small" };
+
+          if (isNativeToken)
+            await ethers.drainEtherWithFactory({ salt, walletFactory });
+          else
+            await ethers.drainERC20WithFactory({
+              salt,
+              walletFactory,
+              tokenAddress,
+            });
+          break;
+        }
+
+        default:
+          return { status: false, message: "Network not supported" };
+      }
+    }
+
+    return { status: true, message: "Crypta asset drained" };
+  } catch (error) {
+    return {
+      payload: {
+        status: false,
+        message: "Error trying to drain wallet",
         error,
       },
       code: 500,

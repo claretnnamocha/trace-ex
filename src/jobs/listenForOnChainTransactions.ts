@@ -10,8 +10,6 @@ export const listenForOnChainTransactions = async () => {
   const queue = ListeningQueue;
   const queueName = `listenForOnChainTransactions-${uuid()}`;
 
-  await queue.purge();
-
   jobs.agenda.process({
     queueName,
     queue: ListeningQueue,
