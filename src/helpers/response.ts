@@ -1,5 +1,4 @@
 import { Response } from "express";
-import * as telegram from "./telegram";
 
 export const response = async (
   res: Response,
@@ -8,7 +7,6 @@ export const response = async (
   debug = false
 ) => {
   const newData = data;
-  const { error } = newData;
 
   if (!debug) delete newData.error;
 
@@ -16,6 +14,4 @@ export const response = async (
     ...newData,
     timestamp: `${new Date().toUTCString()}`,
   });
-
-  if (error) telegram.notify({ error });
 };
