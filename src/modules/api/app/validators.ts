@@ -10,6 +10,7 @@ export const updateApp = {
   name: Joi.string().trim().lowercase().required(),
   displayName: Joi.string().trim().lowercase(),
   supportEmail: Joi.string().email().trim().lowercase(),
+  webhookUrl: Joi.string().uri().trim().lowercase(),
   instantSettlement: Joi.boolean().valid(true, false),
 };
 

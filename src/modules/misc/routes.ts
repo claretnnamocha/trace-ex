@@ -6,4 +6,6 @@ const routes = Router();
 
 routes.get("/ping", controller(service.ping));
 
+routes.get("/tokens", controller(service.supportedTokens));
+
 export default routes;

@@ -6,8 +6,6 @@ export interface App {
   name?: string;
   user?: User;
   webhookUrl?: string;
-  testWebhookUrl?: string;
-  testApiKey?: string;
   displayName?: string;
   supportEmail?: string;
   apiKey?: string;

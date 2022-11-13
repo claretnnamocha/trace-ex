@@ -97,12 +97,12 @@ export const getAppKeys = async (
       };
     }
 
-    const { apiKey, secretKey, testApiKey } = app;
+    const { apiKey, secretKey } = app;
 
     return {
       status: true,
       message: "App Keys",
-      data: { apiKey, secretKey, testApiKey },
+      data: { apiKey, secretKey },
     };
   } catch (error) {
     return {
@@ -125,8 +125,14 @@ export const updateApp = async (
   params: api.app.UpdateApp
 ): Promise<others.Response> => {
   try {
-    const { userId, displayName, name, instantSettlement, supportEmail } =
-      params;
+    const {
+      userId,
+      displayName,
+      name,
+      instantSettlement,
+      supportEmail,
+      webhookUrl,
+    } = params;
 
     const user: UserSchema = await User.findByPk(userId);
 
@@ -146,6 +152,8 @@ export const updateApp = async (
     if (instantSettlement !== undefined)
       payload.instantSettlement = instantSettlement;
     if (supportEmail !== undefined) payload.supportEmail = supportEmail;
+
+    if (webhookUrl !== undefined) payload.webhookUrl = supportEmail;
 
     await app.update(payload);
 

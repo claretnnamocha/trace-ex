@@ -1,9 +1,10 @@
 import { BigNumber } from "bignumber.js";
 import sequelize, { Op } from "sequelize";
 import { SALT, WALLET_FACTORY_ADDRESS } from "../../../configs/constants";
-import { spenderPrivateKey } from "../../../configs/env";
+import { isTestnet, spenderPrivateKey } from "../../../configs/env";
 import { altlayer, ethers, zksync } from "../../../helpers/crypto/ethereum";
 import { NormalizedTransaction } from "../../../helpers/crypto/ethereum/ethers";
+import { sendWebhook } from "../../../jobs";
 import { App, SupportedToken, Transaction, Wallet } from "../../../models";
 import {
   AppSchema,
@@ -12,6 +13,8 @@ import {
   WalletSchema,
 } from "../../../types/models";
 import { api, others } from "../../../types/services";
+
+// const { FRONTEND_BASEURL } = process.env;
 
 /**
  * Get L2 balance
@@ -209,10 +212,12 @@ export const logWalletTransactions = async (
     const { walletId, transaction } = params;
 
     const {
-      token: { network, symbol },
+      token: { network, symbol, decimals, blockchain },
       address,
-      app: { id: appId },
-    }: WalletSchema = await Wallet.findByPk(walletId);
+      app: { id: appId, webhookUrl },
+      id: walletReference,
+    }: // contact,
+    WalletSchema = await Wallet.findByPk(walletId);
     let normalizedTransaction: NormalizedTransaction;
 
     switch (network) {
@@ -242,6 +247,12 @@ export const logWalletTransactions = async (
     if (normalizedTransaction.token.toLowerCase() !== symbol.toLowerCase())
       return { status: false, message: "Can't log transaction" };
 
+    if (new BigNumber(normalizedTransaction.amount).lte(0))
+      return {
+        status: false,
+        message: "Can't log transaction less or equal to 0",
+      };
+
     const log = await Transaction.findOne({
       where: {
         "metadata.transaction.hash": normalizedTransaction.transaction.hash,
@@ -256,6 +267,55 @@ export const logWalletTransactions = async (
       };
     }
 
+    if (webhookUrl) {
+      const body = {
+        status: "PAYMENT_RECIEVED",
+        testMode: isTestnet,
+        token: symbol.toUpperCase(),
+        amount: new BigNumber(normalizedTransaction.amount)
+          .div(10 ** decimals)
+          .toFixed(),
+        blockchain,
+        network,
+        walletReference,
+        timestamp: Date.now(),
+      };
+      sendWebhook({ appId, body });
+    }
+
+    // const html = await ejs.renderFile(
+    //   path.resolve(
+    //     __dirname,
+    //     "..",
+    //     "..",
+    //     "..",
+    //     "configs",
+    //     "mail-templates",
+    //     "auth",
+    //     "welcome.html"
+    //   ),
+    //   {
+    //     displayName: app.displayName,
+    //     amount: new BigNumber(normalizedTransaction.amount)
+    //       .div(10 ** decimals)
+    //       .toFixed(),
+    //     uuid: uuid(),
+    //     symbol,
+    //     supportEmail: app.supportEmail,
+    //     FRONTEND_BASEURL,
+    //     date: new Date().toJSON(),
+    //     currentYear: new Date().getFullYear(),
+    //   }
+    // );
+
+    // if (contact.email) {
+    //   sendEmail({
+    //     to: contact.email,
+    //     subject: "Welcome",
+    //     text: "",
+    //     html,
+    //   });
+    // }
     await updateWalletBalance({ ...normalizedTransaction, walletId });
 
     return {

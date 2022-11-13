@@ -46,11 +46,6 @@ const App = db.define(
       type: DataTypes.STRING,
       defaultValue: null,
     },
-    testWebhookUrl: {
-      type: DataTypes.STRING,
-      defaultValue: null,
-    },
-    testApiKey: { type: DataTypes.STRING },
     displayName: { type: DataTypes.STRING },
     supportEmail: { type: DataTypes.STRING },
     apiKey: { type: DataTypes.STRING },

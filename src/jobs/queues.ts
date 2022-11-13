@@ -10,3 +10,7 @@ export const EmailQueue = jobs.agenda.create({
 export const ListeningQueue = jobs.agenda.create({
   queueName: "onChainTransactionListener",
 });
+
+export const WebhookQueue = jobs.agenda.create({
+  queueName: "webhook",
+});

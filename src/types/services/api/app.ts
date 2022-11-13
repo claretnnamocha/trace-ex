@@ -8,6 +8,7 @@ export interface UpdateApp {
   name: string;
   displayName?: string;
   supportEmail?: string;
+  webhookUrl?: string;
   instantSettlement?: boolean;
 }
 
