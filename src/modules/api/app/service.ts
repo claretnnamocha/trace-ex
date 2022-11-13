@@ -617,7 +617,7 @@ export const sendCrypto = async (
 
     const realAmount = new BigNumber(amount)
       .multipliedBy(10 ** token.decimals)
-      .toFixed();
+      .toNumber();
 
     if (
       new BigNumber(realAmount).gte(
@@ -626,39 +626,41 @@ export const sendCrypto = async (
     )
       return { status: false, message: "Insufficient balance" };
 
-    let transaction: any;
-
     if (blockchain === "ethereum") {
       switch (network) {
-        case "altlayer-devnet":
+        case "altlayer-devnet": {
+          const contractAddress = await WALLET_FACTORY_ADDRESS();
+          const walletFactory = ethers.getFactory({
+            contractAddress,
+            network,
+            privateKey: spenderPrivateKey,
+          });
+
           if (token.isNativeToken) {
-            transaction = await ethers.sendNativeToken({
-              network,
+            await ethers.transferEtherFromFactory({
               amount,
-              privateKey: spenderPrivateKey,
               reciever: to,
+              walletFactory,
             });
           } else {
-            transaction = await ethers.sendERC20Token({
-              network,
+            await ethers.transferERC20FromFactory({
               amount,
-              privateKey: spenderPrivateKey,
               reciever: to,
-              contractAddress: token.contractAddress,
+              tokenAddress: token.contractAddress,
+              walletFactory,
             });
           }
           break;
+        }
         default:
           return { status: false, message: "Network not found" };
       }
     }
 
-    if (!transaction) return { status: false, message: "Transaction failed" };
-
     await updateWalletBalance({
-      transaction,
+      transaction: { to, token },
       type: "debit",
-      amount: realAmount,
+      amount: realAmount.toFixed(),
       appId,
     });
 
@@ -667,7 +669,6 @@ export const sendCrypto = async (
       message: "Crypto sent",
       data: {
         amount,
-        hash: transaction.hash,
         network,
         token: symbol.toUpperCase(),
         recipient: to,

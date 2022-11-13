@@ -79,7 +79,7 @@ const supportedTokens = {
         coinGeckoId: "keeway-token",
         isNativeToken: false,
         isStableToken: false,
-        contractAddress: "0xBd59BCB8B2648bAfC11D2a7915de9b9d173545A1",
+        contractAddress: "0x3b08a8313CED4b9B8AD95F02e34Fd4676d22063b",
         decimals: 18,
         minimumDrainAmount: 1,
         isTestnet: true,
@@ -87,7 +87,7 @@ const supportedTokens = {
     },
   },
 };
-const WALLET_FACTORY_ADDRESS = "0xDEF44ABCC5C3d8B7858CE2B4E3560aEcd1816840";
+const WALLET_FACTORY_ADDRESS = "0x48d044e8926Ff95d88baCf3c01cCF6cF06817Cf2";
 
 const seedSupportedTokens = async () => {
   const blockchainKeys = Object.keys(supportedTokens);

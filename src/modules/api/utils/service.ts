@@ -361,11 +361,10 @@ export const drainWalletOnChain = async (
       index: walletIndex,
     }: WalletSchema = await Wallet.findByPk(walletId);
 
-    const contractAddress = await WALLET_FACTORY_ADDRESS();
-
     if (blockchain === "ethereum") {
       switch (network) {
         case "altlayer-devnet": {
+          const contractAddress = await WALLET_FACTORY_ADDRESS();
           const walletFactory = ethers.getFactory({
             contractAddress,
             network,
@@ -392,6 +391,11 @@ export const drainWalletOnChain = async (
 
           if (min.gt(new BigNumber(balance)))
             return { status: false, message: "Amount too small" };
+
+          const created = await walletFactory.isCreated(salt);
+
+          if (!created)
+            await ethers.createWalletWithFactory({ salt, walletFactory });
 
           if (isNativeToken)
             await ethers.drainEtherWithFactory({ salt, walletFactory });

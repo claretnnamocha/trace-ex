@@ -6,6 +6,7 @@ import path from "path";
 import { Op } from "sequelize";
 import { v4 as uuid } from "uuid";
 import { displayName } from "../../../package.json";
+import { WALLET_FACTORY_ADDRESS } from "../../configs/constants";
 import { spenderPrivateKey } from "../../configs/env";
 import { jwt, sms } from "../../helpers";
 import { ethers } from "../../helpers/crypto/ethereum";
@@ -1048,7 +1049,7 @@ export const sendCrypto = async (
 
     const realAmount = new BigNumber(amount)
       .multipliedBy(10 ** wallet.token.decimals)
-      .toFixed();
+      .toNumber();
 
     if (new BigNumber(realAmount).gte(wallet.platformBalance))
       return { status: false, message: "Insufficient balance" };
@@ -1059,39 +1060,42 @@ export const sendCrypto = async (
         code: 404,
       };
     }
-    let transaction: any;
 
     if (blockchain === "ethereum") {
       switch (network) {
-        case "altlayer-devnet":
+        case "altlayer-devnet": {
+          const contractAddress = await WALLET_FACTORY_ADDRESS();
+          const walletFactory = ethers.getFactory({
+            contractAddress,
+            network,
+            privateKey: spenderPrivateKey,
+          });
+
           if (wallet.token.isNativeToken) {
-            transaction = await ethers.sendNativeToken({
-              network,
+            await ethers.transferEtherFromFactory({
               amount,
-              privateKey: spenderPrivateKey,
               reciever: to,
+              walletFactory,
             });
           } else {
-            transaction = await ethers.sendERC20Token({
-              network,
+            await ethers.transferERC20FromFactory({
               amount,
-              privateKey: spenderPrivateKey,
               reciever: to,
-              contractAddress: wallet.token.contractAddress,
+              tokenAddress: wallet.token.contractAddress,
+              walletFactory,
             });
           }
           break;
+        }
         default:
           return { status: false, message: "Network not found" };
       }
     }
 
-    if (!transaction) return { status: false, message: "Transaction failed" };
-
     await updateWalletBalance({
-      transaction,
+      transaction: { token: wallet.token, to },
       type: "debit",
-      amount: realAmount,
+      amount: realAmount.toFixed(),
       confirmed: true,
       walletId: wallet.id,
     });
@@ -1101,7 +1105,6 @@ export const sendCrypto = async (
       message: "Crypto sent",
       data: {
         amount,
-        hash: transaction.hash,
         network,
         token: symbol.toUpperCase(),
         reciever: to,

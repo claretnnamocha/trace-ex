@@ -856,7 +856,9 @@ export const transferEtherFromFactory = async ({
   await validateFactorySigner({ walletFactory });
 
   const to = ethers.utils.getAddress(reciever);
-  const value = new BigNumber(amount).multipliedBy(new BigNumber(10 ** 18));
+  const value = new BigNumber(amount)
+    .multipliedBy(new BigNumber(10 ** 18))
+    .toFixed();
 
   await walletFactory.transferETH(value, to);
 };
@@ -886,9 +888,9 @@ export const transferERC20FromFactory = async ({
   const decimals: number = await token.decimals();
 
   const to = ethers.utils.getAddress(reciever);
-  const value = new BigNumber(amount).multipliedBy(
-    new BigNumber(10 ** decimals)
-  );
+  const value = new BigNumber(amount)
+    .multipliedBy(new BigNumber(10 ** decimals))
+    .toFixed();
 
   await walletFactory.transferERC20(token.address, value, to);
 };
