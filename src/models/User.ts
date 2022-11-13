@@ -44,7 +44,7 @@ const User = db.define(
     },
     verifiedEmail: {
       type: DataTypes.BOOLEAN,
-      defaultValue: false,
+      defaultValue: true,
       allowNull: false,
     },
     verifiedPhone: {
