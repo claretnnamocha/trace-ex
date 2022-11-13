@@ -17,7 +17,6 @@ export const sendWebhook = async ({ appId, body }) => {
     queue,
     callback: async () => {
       const { webhookUrl, secretKey }: AppSchema = await App.findByPk(appId);
-      console.log(body, secretKey, webhookUrl);
 
       const signature = crypto
         .createHmac("sha512", secretKey)

@@ -1,10 +1,13 @@
 import { BigNumber } from "bignumber.js";
+import ejs from "ejs";
+import path from "path";
 import sequelize, { Op } from "sequelize";
+import { v4 as uuid } from "uuid";
 import { SALT, WALLET_FACTORY_ADDRESS } from "../../../configs/constants";
 import { isTestnet, spenderPrivateKey } from "../../../configs/env";
 import { altlayer, ethers, zksync } from "../../../helpers/crypto/ethereum";
 import { NormalizedTransaction } from "../../../helpers/crypto/ethereum/ethers";
-import { sendWebhook } from "../../../jobs";
+import { sendEmail, sendWebhook } from "../../../jobs";
 import { App, SupportedToken, Transaction, Wallet } from "../../../models";
 import {
   AppSchema,
@@ -14,7 +17,7 @@ import {
 } from "../../../types/models";
 import { api, others } from "../../../types/services";
 
-// const { FRONTEND_BASEURL } = process.env;
+const { FRONTEND_BASEURL } = process.env;
 
 /**
  * Get L2 balance
@@ -105,7 +108,7 @@ export const updateWalletBalance = async (
       wallet = { app };
     }
 
-    await Transaction.create({
+    const { id: transactionId }: TransactionSchema = await Transaction.create({
       wallet,
       metadata: { transaction },
       type,
@@ -187,7 +190,11 @@ export const updateWalletBalance = async (
       { where: { id: walletId } }
     );
 
-    return { status: true, message: `Wallet ${type}ed` };
+    return {
+      status: true,
+      message: `Wallet ${type}ed`,
+      data: { transactionId },
+    };
   } catch (error) {
     return {
       payload: {
@@ -214,10 +221,10 @@ export const logWalletTransactions = async (
     const {
       token: { network, symbol, decimals, blockchain },
       address,
-      app: { id: appId, webhookUrl },
+      app: { id: appId, webhookUrl, displayName, supportEmail },
       id: walletReference,
-    }: // contact,
-    WalletSchema = await Wallet.findByPk(walletId);
+      contact,
+    }: WalletSchema = await Wallet.findByPk(walletId);
     let normalizedTransaction: NormalizedTransaction;
 
     switch (network) {
@@ -267,8 +274,16 @@ export const logWalletTransactions = async (
       };
     }
 
+    const updated: any = await updateWalletBalance({
+      ...normalizedTransaction,
+      walletId,
+    });
+
+    if (!updated.status) return updated;
+
     if (webhookUrl) {
       const body = {
+        reference: updated.data.transactionId,
         status: "PAYMENT_RECIEVED",
         testMode: isTestnet,
         token: symbol.toUpperCase(),
@@ -283,40 +298,39 @@ export const logWalletTransactions = async (
       sendWebhook({ appId, body });
     }
 
-    // const html = await ejs.renderFile(
-    //   path.resolve(
-    //     __dirname,
-    //     "..",
-    //     "..",
-    //     "..",
-    //     "configs",
-    //     "mail-templates",
-    //     "auth",
-    //     "welcome.html"
-    //   ),
-    //   {
-    //     displayName: app.displayName,
-    //     amount: new BigNumber(normalizedTransaction.amount)
-    //       .div(10 ** decimals)
-    //       .toFixed(),
-    //     uuid: uuid(),
-    //     symbol,
-    //     supportEmail: app.supportEmail,
-    //     FRONTEND_BASEURL,
-    //     date: new Date().toJSON(),
-    //     currentYear: new Date().getFullYear(),
-    //   }
-    // );
+    const html = await ejs.renderFile(
+      path.resolve(
+        __dirname,
+        "..",
+        "..",
+        "..",
+        "configs",
+        "mail-templates",
+        "auth",
+        "welcome.html"
+      ),
+      {
+        displayName,
+        amount: new BigNumber(normalizedTransaction.amount)
+          .div(10 ** decimals)
+          .toFixed(),
+        uuid: uuid(),
+        symbol,
+        supportEmail,
+        FRONTEND_BASEURL,
+        date: new Date().toJSON(),
+        currentYear: new Date().getFullYear(),
+      }
+    );
 
-    // if (contact.email) {
-    //   sendEmail({
-    //     to: contact.email,
-    //     subject: "Welcome",
-    //     text: "",
-    //     html,
-    //   });
-    // }
-    await updateWalletBalance({ ...normalizedTransaction, walletId });
+    if (contact.email) {
+      sendEmail({
+        to: contact.email,
+        subject: "Welcome",
+        text: "",
+        html,
+      });
+    }
 
     return {
       code: 201,

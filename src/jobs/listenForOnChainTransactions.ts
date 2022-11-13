@@ -12,7 +12,7 @@ export const listenForOnChainTransactions = async () => {
 
   jobs.agenda.process({
     queueName,
-    queue: ListeningQueue,
+    queue,
     callback: async () => {
       const wallets: Array<WalletSchema> = await Wallet.findAll({
         where: { active: true },
