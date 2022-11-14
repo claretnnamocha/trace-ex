@@ -2,6 +2,7 @@ export interface GetTokenBalance {
   address: string;
   token?: string;
   network: string;
+  blockchain: string;
 }
 
 export interface UpdateWalletTransactions {

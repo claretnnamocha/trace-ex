@@ -2,7 +2,7 @@ import swaggerJsDoc, { Options } from "swagger-jsdoc";
 import { displayName, version } from "../../package.json";
 import { isTestnet, port } from "./env";
 
-const apis = ["./src/docs/dev/*.yml"];
+const apis = ["./src/docs/**/*.yml"];
 
 const swagger: Options = {
   swaggerDefinition: {

@@ -28,6 +28,36 @@ paths:
         500:
           description: Server down
 
+  /misc/address-balance:
+    get:
+      tags:
+        - Misc
+      produces:
+        - application/json
+      parameters:
+        - in: query
+          name: address
+          type: string
+          required: true
+        - in: query
+          name: token
+          type: string
+          enum: ["alt", "kwt"]
+          required: true
+        - in: query
+          name: network
+          type: string
+          enum: ["altlayer-devnet"]
+          required: true
+        - in: query
+          name: blockchain
+          type: string
+          enum: ["ethereum"]
+          required: true
+      responses:
+        200:
+          description: Status and message and data
+
 securityDefinitions:
   Bearer:
     type: apiKey

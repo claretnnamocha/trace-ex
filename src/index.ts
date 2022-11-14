@@ -27,6 +27,7 @@ app.use(cors());
 app.use("/api-docs", swaggerUi.serve, (_: Request, res: Response) =>
   res.send(swaggerUi.generateHTML(swagger.config))
 );
+
 app.use("/api/documentation", swaggerUi.serve, (_: Request, res: Response) =>
   res.send(swaggerUi.generateHTML(swaggerDev.config))
 );

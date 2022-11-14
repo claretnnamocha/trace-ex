@@ -1,12 +1,8 @@
 import Joi from "joi";
 
-const validL2Networks = [
-  "altlayer-devnet",
-  "metis-goerli",
-  "zksync-goerli",
-  "zksync-mainnet",
-];
+const validL2Networks = ["altlayer-devnet"];
 const validAssets = ["alt", "kwt"];
+const validBlockchains = ["ethereum"];
 
 export const getTokenBalance = {
   network: Joi.string()
@@ -16,4 +12,9 @@ export const getTokenBalance = {
     .valid(...validAssets)
     .required(),
   address: Joi.string().trim().required(),
+  blockchain: Joi.string()
+    .valid(...validBlockchains)
+    .insensitive()
+    .lowercase()
+    .required(),
 };

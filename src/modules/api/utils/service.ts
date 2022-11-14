@@ -24,11 +24,11 @@ const { FRONTEND_BASEURL } = process.env;
  * @param {api.utils.GetTokenBalance} params  Request Body
  * @returns {others.Response} Contains status, message and data if any of the operation
  */
-export const getL2Balance = async (
+export const getBalance = async (
   params: api.utils.GetTokenBalance
 ): Promise<others.Response> => {
   try {
-    const { network, address, token: symbol } = params;
+    const { network, address, token: symbol, blockchain } = params;
 
     const token: SupportedTokenSchema = await SupportedToken.findOne({
       where: { symbol, network },
@@ -40,42 +40,44 @@ export const getL2Balance = async (
         payload: { message: "Token not found", status: false },
       };
     }
-    const { decimals, contractAddress } = token;
+    const { decimals, contractAddress, isNativeToken } = token;
 
     let wei: number;
 
-    switch (network) {
-      case "zksync-goerli":
-        wei = await zksync.v2.getBalance({
-          address,
-          token: !contractAddress ? symbol.toUpperCase() : contractAddress,
-        });
-        break;
-      case "altlayer-devnet":
-        if (!contractAddress) {
-          wei = await ethers.getNativeTokenBalance({ address, network });
-        } else {
-          wei = await ethers.getERC20TokenBalance({
-            address,
-            network,
-            contractAddress,
-          });
-        }
-        break;
+    if (blockchain === "ethereum") {
+      switch (network) {
+        case "altlayer-devnet":
+          if (isNativeToken) {
+            wei = await ethers.getNativeTokenBalance({ address, network });
+          } else {
+            wei = await ethers.getERC20TokenBalance({
+              address,
+              network,
+              contractAddress,
+            });
+          }
+          break;
 
-      default:
-        return {
-          status: false,
-          message: "This network is not supported yet",
-        };
+        default:
+          return {
+            status: false,
+            message: "This network is not supported yet",
+          };
+      }
     }
 
-    const data = new BigNumber(wei).div(10 ** decimals).toFixed();
+    const amount = new BigNumber(wei).div(10 ** decimals).toFixed();
 
     return {
       status: true,
-      message: `L2 balance for: ${address} [${network}]`,
-      data,
+      message: "Crypto Balance",
+      data: {
+        amount,
+        network,
+        blockchain,
+        token: symbol.toUpperCase(),
+        address,
+      },
     };
   } catch (error) {
     return {
