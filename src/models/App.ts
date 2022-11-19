@@ -82,6 +82,8 @@ const App = db.define(
 
         for (let index = 0; index < tokens.length; index += 1) {
           const { blockchain, network, symbol } = tokens[index];
+          console.log({ blockchain, network, symbol });
+
           await generateWallet({
             appId,
             blockchain,
