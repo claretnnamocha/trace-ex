@@ -750,10 +750,7 @@ export const getAddressWithFactory = async ({
   salt: string;
   walletFactory: Contract;
 }): Promise<string> => {
-  const g = await walletFactory.getAddress(salt);
-  console.log(g);
-
-  return g;
+  return walletFactory.getAddress(salt);
 };
 
 const ensureWalletIsCreated = async ({
