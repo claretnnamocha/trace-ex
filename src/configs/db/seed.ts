@@ -155,7 +155,7 @@ const seedSupportedTokens = async () => {
 const seedConfig = async () => {
   const { Config } = await import("../../models");
 
-  return Config.bulkCreate([
+  await Config.bulkCreate([
     {
       key: "ALTLAYER_WALLET_FACTORY_ADDRESS",
       value: ALTLAYER_WALLET_FACTORY_ADDRESS,
