@@ -317,7 +317,7 @@ export const generateWallet = async (
       code: 201,
     };
   } catch (error) {
-    console.log(error.message);
+    console.log(error.stack);
 
     return {
       payload: {
