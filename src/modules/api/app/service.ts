@@ -267,8 +267,6 @@ export const generateWallet = async (
 
         const salt = SALT({ walletIndex: index, secretKey });
 
-        console.log(5, symbol, network);
-
         address = await ethers.getAddressWithFactory({ salt, walletFactory });
 
         break;

@@ -347,7 +347,6 @@ export const PROVIDER = ({
   network?: NETWORKS;
 }): ethers.providers.JsonRpcProvider => {
   const rpc = RPC_LINK({ network });
-  console.log(rpc, network);
 
   return new ethers.providers.JsonRpcProvider(rpc);
 };
@@ -751,7 +750,10 @@ export const getAddressWithFactory = async ({
   salt: string;
   walletFactory: Contract;
 }): Promise<string> => {
-  return walletFactory.getAddress(salt);
+  const g = await walletFactory.getAddress(salt);
+  console.log("ll");
+
+  return g;
 };
 
 const ensureWalletIsCreated = async ({
