@@ -1064,7 +1064,7 @@ export const sendCrypto = async (
     if (blockchain === "ethereum") {
       switch (network) {
         case "altlayer-devnet": {
-          const contractAddress = await WALLET_FACTORY_ADDRESS();
+          const contractAddress = await WALLET_FACTORY_ADDRESS(network);
           const walletFactory = ethers.getFactory({
             contractAddress,
             network,

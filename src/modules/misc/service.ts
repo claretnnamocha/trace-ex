@@ -30,3 +30,36 @@ export const supportedTokens = async (): Promise<others.Response> => {
     };
   }
 };
+
+/**
+ * Networks
+ * @returns {others.Response} Contains status, message and data if any of the operation
+ */
+export const supportedNetworks = async ({
+  token: symbol,
+}: {
+  token: string;
+}): Promise<others.Response> => {
+  try {
+    let where = {};
+
+    if (symbol) where = { symbol, ...where };
+
+    const data = await SupportedToken.findAll({
+      where,
+      attributes: ["network"],
+      group: ["network"],
+    });
+
+    return { status: true, data, message: "Networks" };
+  } catch (error) {
+    return {
+      payload: {
+        status: false,
+        message: "Error trying to supported networks",
+        error,
+      },
+      code: 500,
+    };
+  }
+};

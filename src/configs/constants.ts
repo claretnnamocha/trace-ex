@@ -10,10 +10,17 @@ export const SALT = ({ secretKey, walletIndex }) =>
     .update(walletIndex.toFixed())
     .digest("hex")}`;
 
-export const WALLET_FACTORY_ADDRESS = async () => {
+export const WALLET_FACTORY_ADDRESS = async (
+  network: string = "altlayer-devnet"
+) => {
+  const key =
+    network === "altlayer-devnet"
+      ? "ALTLAYER_WALLET_FACTORY_ADDRESS"
+      : "METIS_WALLET_FACTORY_ADDRESS";
+
   const config: ConfigSchema = await Config.findOne({
-    where: { key: "WALLET_FACTORY_ADDRESS" },
+    where: { key },
   });
 
-  return config.value;
+  return config?.value;
 };

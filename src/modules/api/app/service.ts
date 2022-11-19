@@ -258,11 +258,9 @@ export const generateWallet = async (
 
     switch (blockchain) {
       case "ethereum": {
-        const contractAddress = await WALLET_FACTORY_ADDRESS();
+        const contractAddress = await WALLET_FACTORY_ADDRESS(network);
 
-        if (network !== "altlayer-devnet")
-          throw new Error("Network not supported");
-
+        // @ts-ignore
         const walletFactory = ethers.getFactory({ contractAddress, network });
 
         const { secretKey }: AppSchema = await App.findByPk(appId);
@@ -317,6 +315,8 @@ export const generateWallet = async (
       code: 201,
     };
   } catch (error) {
+    console.log(error);
+
     return {
       payload: {
         status: false,
@@ -637,7 +637,7 @@ export const sendCrypto = async (
     if (blockchain === "ethereum") {
       switch (network) {
         case "altlayer-devnet": {
-          const contractAddress = await WALLET_FACTORY_ADDRESS();
+          const contractAddress = await WALLET_FACTORY_ADDRESS(network);
           const walletFactory = ethers.getFactory({
             contractAddress,
             network,

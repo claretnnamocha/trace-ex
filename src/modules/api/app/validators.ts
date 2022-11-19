@@ -14,8 +14,8 @@ export const updateApp = {
   instantSettlement: Joi.boolean().valid(true, false),
 };
 
-const validNetworks = ["zksync-goerli", "altlayer-devnet"];
-const validAssets = ["alt", "kwt"];
+const validNetworks = ["zksync-goerli", "altlayer-devnet", "metis-goerli"];
+const validAssets = ["alt", "kwt", "metis"];
 const validBlockchains = ["ethereum"];
 
 export const generateAddress = {

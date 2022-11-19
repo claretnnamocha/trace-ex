@@ -85,9 +85,24 @@ const supportedTokens = {
         isTestnet: true,
       },
     },
+    "metis-goerli": {
+      metis: {
+        name: "Metis",
+        coinGeckoId: "metis-token",
+        isNativeToken: true,
+        isStableToken: false,
+        contractAddress: undefined,
+        decimals: 18,
+        minimumDrainAmount: 1,
+        isTestnet: true,
+      },
+    },
   },
 };
-const WALLET_FACTORY_ADDRESS = "0x48d044e8926Ff95d88baCf3c01cCF6cF06817Cf2";
+const ALTLAYER_WALLET_FACTORY_ADDRESS =
+  "0x48d044e8926Ff95d88baCf3c01cCF6cF06817Cf2";
+const METIS_WALLET_FACTORY_ADDRESS =
+  "0x5a3efCD8691c7a15BB8C373Cd2C3c491183e4AbE";
 
 const seedSupportedTokens = async () => {
   const blockchainKeys = Object.keys(supportedTokens);
@@ -140,10 +155,16 @@ const seedSupportedTokens = async () => {
 const seedConfig = async () => {
   const { Config } = await import("../../models");
 
-  return Config.create({
-    key: "WALLET_FACTORY_ADDRESS",
-    value: WALLET_FACTORY_ADDRESS,
-  });
+  return Config.bulkCreate([
+    {
+      key: "ALTLAYER_WALLET_FACTORY_ADDRESS",
+      value: ALTLAYER_WALLET_FACTORY_ADDRESS,
+    },
+    {
+      key: "METIS_WALLET_FACTORY_ADDRESS",
+      value: METIS_WALLET_FACTORY_ADDRESS,
+    },
+  ]);
 };
 
 export const seed = async (models: any) => {

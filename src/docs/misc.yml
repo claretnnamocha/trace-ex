@@ -28,6 +28,25 @@ paths:
         500:
           description: Server down
 
+  /misc/networks:
+    get:
+      tags:
+        - Misc
+      produces:
+        - application/json
+      parameters:
+        - in: query
+          name: token
+          type: string
+          enum: ["alt", "kwt", "metis"]
+      responses:
+        200:
+          description: Success
+        400:
+          description: Error
+        500:
+          description: Server down
+
   /misc/address-balance:
     get:
       tags:
@@ -42,7 +61,7 @@ paths:
         - in: query
           name: token
           type: string
-          enum: ["alt", "kwt"]
+          enum: ["alt", "kwt", "metis"]
           required: true
         - in: query
           name: network

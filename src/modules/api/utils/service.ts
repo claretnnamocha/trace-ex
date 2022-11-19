@@ -5,7 +5,7 @@ import sequelize, { Op } from "sequelize";
 import { v4 as uuid } from "uuid";
 import { SALT, WALLET_FACTORY_ADDRESS } from "../../../configs/constants";
 import { isTestnet, spenderPrivateKey } from "../../../configs/env";
-import { altlayer, ethers, zksync } from "../../../helpers/crypto/ethereum";
+import { blockscout, ethers, zksync } from "../../../helpers/crypto/ethereum";
 import { NormalizedTransaction } from "../../../helpers/crypto/ethereum/ethers";
 import { sendEmail, sendWebhook } from "../../../jobs";
 import { App, SupportedToken, Transaction, Wallet } from "../../../models";
@@ -237,8 +237,9 @@ export const logWalletTransactions = async (
           network
         );
         break;
+      case "metis-goerli":
       case "altlayer-devnet":
-        normalizedTransaction = await altlayer.normalizeTransaction(
+        normalizedTransaction = await blockscout.normalizeTransaction(
           transaction,
           address,
           network
@@ -379,8 +380,9 @@ export const updateWalletTransactions = async (
             network,
           });
           break;
+        case "metis-goerli":
         case "altlayer-devnet":
-          transactions = await altlayer.getAllTransactions({
+          transactions = await blockscout.getAllTransactions({
             address,
             network,
           });
@@ -440,7 +442,7 @@ export const drainWalletOnChain = async (
     if (blockchain === "ethereum") {
       switch (network) {
         case "altlayer-devnet": {
-          const contractAddress = await WALLET_FACTORY_ADDRESS();
+          const contractAddress = await WALLET_FACTORY_ADDRESS(network);
           const walletFactory = ethers.getFactory({
             contractAddress,
             network,

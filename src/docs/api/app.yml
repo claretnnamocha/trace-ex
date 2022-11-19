@@ -8,7 +8,7 @@ paths:
       parameters:
         - in: query
           name: symbol
-          enum: ["alt", "kwt"]
+          enum: ["alt", "kwt", "metis"]
           required: true
         - in: query
           name: network
@@ -182,7 +182,7 @@ definitions:
         required: true
       token:
         type: string
-        enum: ["alt", "kwt"]
+        enum: ["alt", "kwt", "metis"]
         required: true
       network:
         type: string

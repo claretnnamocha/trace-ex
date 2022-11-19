@@ -1,9 +1,9 @@
 import fetch from "node-fetch";
 import { NormalizedTransaction } from "./ethers";
 
-type ALTLAYER_NETWORKS = "altlayer-devnet";
+type LAYER_NETWORKS = "altlayer-devnet" | "metis-goerli";
 
-interface AltToken {
+interface Token {
   cataloged: boolean;
   contractAddress: string;
   decimals: string;
@@ -13,7 +13,7 @@ interface AltToken {
   type: string;
 }
 
-interface AltTransaction {
+interface Transaction {
   blockHash: string;
   blockNumber: string;
   confirmations: string;
@@ -34,7 +34,7 @@ interface AltTransaction {
   value: string;
 }
 
-interface AltTokenTransaction {
+interface TokenTransaction {
   blockHash: string;
   blockNumber: string;
   confirmations: string;
@@ -57,7 +57,7 @@ interface AltTokenTransaction {
   value: string;
 }
 
-interface AltInternalTransaction {
+interface InternalTransaction {
   blockNumber: string;
   contractAddress: string;
   errCode: string;
@@ -74,10 +74,12 @@ interface AltInternalTransaction {
   value: string;
 }
 
-const BASE_URL = ({ network }: { network: ALTLAYER_NETWORKS }): string => {
+const BASE_URL = ({ network }: { network: LAYER_NETWORKS }): string => {
   switch (network) {
     case "altlayer-devnet":
       return "https://devnet-explorer.altlayer.io/api";
+    case "metis-goerli":
+      return "https://goerli.explorer.metisdevops.link/api";
     default:
       throw new Error("Network not supported");
   }
@@ -88,8 +90,8 @@ export const getTransaction = async ({
   network = "altlayer-devnet",
 }: {
   txHash: string;
-  network?: ALTLAYER_NETWORKS;
-}): Promise<AltTransaction> => {
+  network?: LAYER_NETWORKS;
+}): Promise<Transaction> => {
   const link = `${BASE_URL({
     network,
   })}?module=transaction&action=gettxinfo&txhash=${txHash}`;
@@ -104,8 +106,8 @@ export const getToken = async ({
   network = "altlayer-devnet",
 }: {
   contractAddress: string;
-  network?: ALTLAYER_NETWORKS;
-}): Promise<AltToken> => {
+  network?: LAYER_NETWORKS;
+}): Promise<Token> => {
   const link = `${BASE_URL({
     network,
   })}?module=token&action=getToken&contractaddress=${contractAddress}`;
@@ -124,8 +126,8 @@ const getAllTokenTransactions = async ({
   address: string;
   page?: number;
   offset?: number;
-  network?: ALTLAYER_NETWORKS;
-}): Promise<AltTokenTransaction[]> => {
+  network?: LAYER_NETWORKS;
+}): Promise<TokenTransaction[]> => {
   const url = `${BASE_URL({
     network,
   })}?module=account&action=tokentx&address=${address}&page=${page}&offset=${offset}`;
@@ -156,8 +158,8 @@ const getAllInternalTransactions = async ({
   address: string;
   page?: number;
   offset?: number;
-  network?: ALTLAYER_NETWORKS;
-}): Promise<AltTokenTransaction[]> => {
+  network?: LAYER_NETWORKS;
+}): Promise<TokenTransaction[]> => {
   const url = `${BASE_URL({
     network,
   })}?module=account&action=txlistinternal&address=${address}&page=${page}&offset=${offset}`;
@@ -188,10 +190,8 @@ export const getAllTransactions = async ({
   address: string;
   page?: number;
   offset?: number;
-  network?: ALTLAYER_NETWORKS;
-}): Promise<
-  AltTransaction[] | AltTokenTransaction[] | AltInternalTransaction[]
-> => {
+  network?: LAYER_NETWORKS;
+}): Promise<Transaction[] | TokenTransaction[] | InternalTransaction[]> => {
   const url = `${BASE_URL({
     network,
   })}?module=account&action=txlist&address=${address}&page=${page}&offset=${offset}`;
@@ -215,21 +215,21 @@ export const getAllTransactions = async ({
   ];
 };
 
+const getNativeTokenSymbol = (network: LAYER_NETWORKS) => {
+  return network === "altlayer-devnet" ? "ALT" : "METIS";
+};
+
 export const normalizeTransaction = async (
-  transaction:
-    | AltTransaction
-    | AltTokenTransaction
-    | AltInternalTransaction
-    | any,
+  transaction: Transaction | TokenTransaction | InternalTransaction | any,
   address: string,
-  network: ALTLAYER_NETWORKS = "altlayer-devnet"
+  network: LAYER_NETWORKS = "altlayer-devnet"
 ): Promise<NormalizedTransaction> => {
   const type =
     transaction.to.toLowerCase() === address.toLowerCase() ? "credit" : "debit";
   const amount = transaction.value;
   const token =
     transaction.contractAddress === ""
-      ? "ALT"
+      ? getNativeTokenSymbol(network)
       : (
           await getToken({
             contractAddress: transaction.contractAddress,

@@ -1,7 +1,7 @@
 import Joi from "joi";
 
 const validL2Networks = ["altlayer-devnet"];
-const validAssets = ["alt", "kwt"];
+const validAssets = ["alt", "kwt", "metis"];
 const validBlockchains = ["ethereum"];
 
 export const getTokenBalance = {

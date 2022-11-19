@@ -3,8 +3,8 @@ import passwordComplexity from "joi-password-complexity";
 
 const JoiPhone = Joi.extend(require("joi-phone-number"));
 
-const validAssets = ["alt", "kwt"];
-const validNetworks = ["zksync-goerli", "altlayer-devnet"];
+const validAssets = ["alt", "kwt", "metis"];
+const validNetworks = ["zksync-goerli", "altlayer-devnet", "metis-goerli"];
 const validBlockchains = ["ethereum"];
 
 export const signIn = {

@@ -294,6 +294,7 @@ export const IERC20_ABI = [
 
 export type NETWORKS =
   | "altlayer-devnet"
+  | "goerli"
   | "metis-goerli"
   | "zksync-goerli"
   | "zksync-mainnet";
@@ -311,6 +312,8 @@ export const RPC_LINK = ({
 }: {
   network?: NETWORKS;
 }): string => {
+  const { INFURA_API_KEY } = process.env;
+
   switch (network) {
     case "metis-goerli":
       return "https://goerli.gateway.metisdevops.link";
@@ -318,6 +321,9 @@ export const RPC_LINK = ({
       return "https://devnet-rpc.altlayer.io";
     case "zksync-goerli":
       return "https://zksync2-testnet.zksync.dev";
+    case "goerli":
+      if (!INFURA_API_KEY) throw new Error("Please provide INFURA_API_KEY");
+      return `https://${network}.infura.io/v3/${INFURA_API_KEY}`;
     default:
       throw new Error("This network is not supported yet");
   }
