@@ -259,20 +259,20 @@ export const generateWallet = async (
     switch (blockchain) {
       case "ethereum": {
         const contractAddress = await WALLET_FACTORY_ADDRESS(network);
-        console.log(1);
+        console.log(1, symbol);
 
         // @ts-ignore
         const walletFactory = ethers.getFactory({ contractAddress, network });
-        console.log(2);
+        console.log(2, symbol);
 
         const { secretKey }: AppSchema = await App.findByPk(appId);
-        console.log(3);
+        console.log(3, symbol);
         const salt = SALT({ walletIndex: index, secretKey });
 
-        console.log(4);
+        console.log(4, symbol);
         address = await ethers.getAddressWithFactory({ salt, walletFactory });
 
-        console.log(5);
+        console.log(5, symbol);
         break;
       }
       default:
