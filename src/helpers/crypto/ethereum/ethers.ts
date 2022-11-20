@@ -347,6 +347,7 @@ export const PROVIDER = ({
   network?: NETWORKS;
 }): ethers.providers.JsonRpcProvider => {
   const rpc = RPC_LINK({ network });
+  console.log(rpc);
 
   return new ethers.providers.JsonRpcProvider(rpc);
 };
