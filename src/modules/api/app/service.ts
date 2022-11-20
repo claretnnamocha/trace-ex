@@ -262,7 +262,11 @@ export const generateWallet = async (
         case "metis-goerli": {
           const contractAddress = await WALLET_FACTORY_ADDRESS(network);
 
-          const walletFactory = ethers.getFactory({ contractAddress, network });
+          const walletFactory = ethers.getFactory({
+            contractAddress,
+            network,
+            privateKey: spenderPrivateKey,
+          });
 
           const { secretKey }: AppSchema = await App.findByPk(appId);
 
