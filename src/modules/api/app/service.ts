@@ -261,7 +261,6 @@ export const generateWallet = async (
         case "altlayer-devnet":
         case "metis-goerli": {
           const contractAddress = await WALLET_FACTORY_ADDRESS(network);
-          console.log({ contractAddress, network });
 
           const walletFactory = ethers.getFactory({
             contractAddress,
@@ -322,8 +321,6 @@ export const generateWallet = async (
       code: 201,
     };
   } catch (error) {
-    console.log(error);
-
     return {
       payload: {
         status: false,

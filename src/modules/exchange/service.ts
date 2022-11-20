@@ -916,6 +916,22 @@ export const getWallets = async (
       };
     }
 
+    //   const query = `
+    //     SELECT
+    //       "token" ->> 'symbol' AS "symbol",
+    //       SUM(CAST(wallet. "platformBalance" AS DECIMAL) / pow(10, CAST(token ->> 'decimals' AS INTEGER))) AS "balance"
+    //     FROM
+    //       wallet
+    //     WHERE
+    //       "index" = :index
+    //     GROUP BY
+    //       "token" ->> 'symbol'
+    // `;
+
+    //   const [data] = await db.query(query, {
+    //     replacements: { index: user.index },
+    //   });
+
     const data = await Wallet.findAll({ where: { index: user.index } });
 
     return { status: true, message: "Wallets", data };

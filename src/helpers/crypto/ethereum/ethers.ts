@@ -358,7 +358,7 @@ export const getContract = ({
 
 export const PROVIDER = ({
   network = "altlayer-devnet",
-  chainId = 9990,
+  chainId,
 }: {
   network?: NETWORKS;
   chainId?: number;

@@ -18,6 +18,15 @@ export const supportedTokens = async (): Promise<others.Response> => {
   try {
     const data = await SupportedToken.findAll({});
 
+    //     const query = `
+    //     SELECT DISTINCT
+    //       symbol,
+    //       "name"
+    //     FROM
+    //       "supportedToken"
+    // `;
+
+    //   const [data] = await db.query(query, {});
     return { status: true, data, message: "Tokens" };
   } catch (error) {
     return {
