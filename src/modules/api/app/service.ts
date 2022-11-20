@@ -260,8 +260,11 @@ export const generateWallet = async (
       case "ethereum": {
         const contractAddress = await WALLET_FACTORY_ADDRESS(network);
 
-        // @ts-ignore
-        const walletFactory = ethers.getFactory({ contractAddress, network });
+        const walletFactory = await ethers.getFactory({
+          contractAddress,
+          // @ts-ignore
+          network,
+        });
 
         const { secretKey }: AppSchema = await App.findByPk(appId);
 
@@ -640,7 +643,7 @@ export const sendCrypto = async (
       switch (network) {
         case "altlayer-devnet": {
           const contractAddress = await WALLET_FACTORY_ADDRESS(network);
-          const walletFactory = ethers.getFactory({
+          const walletFactory = await ethers.getFactory({
             contractAddress,
             network,
             privateKey: spenderPrivateKey,

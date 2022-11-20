@@ -37,7 +37,7 @@ export const deposit = async (
     } = wallet;
 
     const path = HD_PATH(index);
-    const { privateKey } = ethers.getWalletFromMnemonic({
+    const { privateKey } = await ethers.getWalletFromMnemonic({
       mnemonic,
       path,
       // @ts-ignore
@@ -99,7 +99,7 @@ export const withdraw = async (
     } = wallet;
 
     const path = HD_PATH(index);
-    const { privateKey } = ethers.getWalletFromMnemonic({
+    const { privateKey } = await ethers.getWalletFromMnemonic({
       mnemonic,
       path,
       // @ts-ignore

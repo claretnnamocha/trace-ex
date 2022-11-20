@@ -443,7 +443,7 @@ export const drainWalletOnChain = async (
       switch (network) {
         case "altlayer-devnet": {
           const contractAddress = await WALLET_FACTORY_ADDRESS(network);
-          const walletFactory = ethers.getFactory({
+          const walletFactory = await ethers.getFactory({
             contractAddress,
             network,
             privateKey: spenderPrivateKey,

@@ -329,6 +329,18 @@ export const RPC_LINK = ({
   }
 };
 
+const chainId = async ({
+  network = "zksync-goerli",
+}: {
+  network?: NETWORKS;
+}): Promise<number> => {
+  const rpc = RPC_LINK({ network });
+
+  const net = await new ethers.providers.JsonRpcProvider(rpc).getNetwork();
+
+  return net.chainId;
+};
+
 export const getContract = ({
   contractAddress,
   abi,
@@ -341,18 +353,19 @@ export const getContract = ({
   return new ethers.Contract(contractAddress, abi, signer);
 };
 
-export const PROVIDER = ({
+export const PROVIDER = async ({
   network = "zksync-goerli",
 }: {
   network?: NETWORKS;
-}): ethers.providers.JsonRpcProvider => {
+}): Promise<ethers.providers.JsonRpcProvider> => {
   const rpc = RPC_LINK({ network });
-  console.log(rpc);
+  const c = await chainId({ network });
+  console.log(c);
 
-  return new ethers.providers.JsonRpcProvider(rpc);
+  return new ethers.providers.JsonRpcProvider(rpc, c);
 };
 
-export const getWalletFromMnemonic = ({
+export const getWalletFromMnemonic = async ({
   mnemonic,
   path,
   network = "zksync-goerli",
@@ -360,8 +373,8 @@ export const getWalletFromMnemonic = ({
   mnemonic: string;
   path: string;
   network?: NETWORKS;
-}): Wallet => {
-  const provider = PROVIDER({ network });
+}): Promise<Wallet> => {
+  const provider = await PROVIDER({ network });
   return Wallet.fromMnemonic(mnemonic, path).connect(provider);
 };
 
@@ -372,7 +385,7 @@ export const getNativeTokenBalance = async ({
   address: string;
   network?: NETWORKS;
 }): Promise<number> => {
-  const provider = PROVIDER({ network });
+  const provider = await PROVIDER({ network });
   const balance = await provider.getBalance(address);
   return new BigNumber(balance.toString()).toNumber();
 };
@@ -386,7 +399,7 @@ export const getERC20TokenBalance = async ({
   contractAddress: string;
   network?: NETWORKS;
 }): Promise<number> => {
-  const signer = PROVIDER({ network });
+  const signer = await PROVIDER({ network });
   const token = getContract({ abi: IERC20_ABI, contractAddress, signer });
   const balance = await token.balanceOf(address);
   return new BigNumber(balance.toString()).toNumber();
@@ -403,7 +416,7 @@ export const sendNativeToken = async ({
   privateKey: string;
   network?: NETWORKS;
 }): Promise<ethers.providers.TransactionResponse> => {
-  const provider = PROVIDER({ network });
+  const provider = await PROVIDER({ network });
   const to = ethers.utils.getAddress(reciever);
   const { address } = new Wallet(privateKey);
   const realAmount = new BigNumber(amount)
@@ -437,7 +450,7 @@ export const sendERC20Token = async ({
 }): Promise<ethers.providers.TransactionResponse> => {
   const to = ethers.utils.getAddress(reciever);
 
-  const provider = PROVIDER({ network });
+  const provider = await PROVIDER({ network });
   const signer = new ethers.Wallet(privateKey, provider);
   const from = signer.address;
   const token = getContract({ abi: IERC20_ABI, contractAddress, signer });
@@ -481,7 +494,7 @@ export const sendTransaction = async ({
   hash: string;
   network?: NETWORKS;
 }): Promise<ethers.providers.TransactionResponse> => {
-  const provider = PROVIDER({ network });
+  const provider = await PROVIDER({ network });
   return provider.sendTransaction(hash);
 };
 
@@ -725,7 +738,7 @@ export const WALLET_FACTORY_ABI = [
   },
 ];
 
-export const getFactory = ({
+export const getFactory = async ({
   contractAddress,
   network = "zksync-goerli",
   privateKey = undefined,
@@ -733,8 +746,10 @@ export const getFactory = ({
   contractAddress: string;
   privateKey?: string;
   network?: NETWORKS;
-}): ethers.Contract => {
-  let signer: ethers.Signer | ethers.providers.Provider = PROVIDER({ network });
+}): Promise<ethers.Contract> => {
+  let signer: ethers.Signer | ethers.providers.Provider = await PROVIDER({
+    network,
+  });
   if (privateKey) signer = new Wallet(privateKey).connect(signer);
 
   return getContract({
@@ -842,7 +857,7 @@ export const drainERC20WithFactory = async ({
   const { name: network } = await walletFactory.signer.provider.getNetwork();
 
   // @ts-ignore
-  const signer = PROVIDER({ network });
+  const signer = await PROVIDER({ network });
   const token = getContract({
     abi: IERC20_ABI,
     contractAddress: tokenAddress,
@@ -887,7 +902,7 @@ export const transferERC20FromFactory = async ({
   const { name: network } = await walletFactory.signer.provider.getNetwork();
 
   // @ts-ignore
-  const signer = PROVIDER({ network });
+  const signer = await PROVIDER({ network });
   const token = getContract({
     abi: IERC20_ABI,
     contractAddress: tokenAddress,

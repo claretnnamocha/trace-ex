@@ -84,7 +84,7 @@ export const deposit = async ({
   const value = new BigNumber(amount).multipliedBy(10 ** decimals).toFixed();
 
   const zkSyncWallet = await getWallet({
-    ethWallet: new Wallet(privateKey, ETH_PROVIDER({ network })),
+    ethWallet: new Wallet(privateKey, await ETH_PROVIDER({ network })),
   });
 
   const operation = await zkSyncWallet.deposit({
@@ -115,7 +115,7 @@ export const withdraw = async ({
   const value = new BigNumber(amount).multipliedBy(10 ** decimals).toFixed();
 
   const zkSyncWallet = await getWallet({
-    ethWallet: new Wallet(privateKey, ETH_PROVIDER({ network })),
+    ethWallet: new Wallet(privateKey, await ETH_PROVIDER({ network })),
   });
 
   const operation = await zkSyncWallet.withdraw({
@@ -173,7 +173,7 @@ export const transfer = async ({
   network?: NETWORKS;
 }) => {
   const zkSyncWallet = await getWallet({
-    ethWallet: new Wallet(privateKey, ETH_PROVIDER({ network })),
+    ethWallet: new Wallet(privateKey, await ETH_PROVIDER({ network })),
   });
 
   const value = new BigNumber(amount).multipliedBy(10 ** decimals).toFixed();
