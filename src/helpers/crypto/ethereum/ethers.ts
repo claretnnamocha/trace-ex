@@ -733,6 +733,9 @@ export const getFactory = ({
   network?: NETWORKS;
 }): ethers.Contract => {
   let signer: ethers.Signer | ethers.providers.Provider = PROVIDER({ network });
+  signer.on("error", (e) => {
+    console.log("Error", e);
+  });
   if (privateKey) signer = new Wallet(privateKey).connect(signer);
 
   return getContract({
