@@ -261,17 +261,16 @@ export const generateWallet = async (
         case "altlayer-devnet":
         case "metis-goerli": {
           const contractAddress = await WALLET_FACTORY_ADDRESS(network);
+          console.log({ contractAddress, network });
 
           const walletFactory = ethers.getFactory({
             contractAddress,
             network,
-            privateKey: spenderPrivateKey,
           });
 
           const { secretKey }: AppSchema = await App.findByPk(appId);
 
           const salt = SALT({ walletIndex: index, secretKey });
-          console.log(salt);
           address = await ethers.getAddressWithFactory({ salt, walletFactory });
 
           break;
