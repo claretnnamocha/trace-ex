@@ -256,26 +256,28 @@ export const generateWallet = async (
 
     let address: string;
 
-    switch (blockchain) {
-      case "ethereum": {
-        const contractAddress = await WALLET_FACTORY_ADDRESS(network);
+    if (blockchain === "ethereum") {
+      switch (network) {
+        case "altlayer-devnet":
+        case "metis-goerli": {
+          const contractAddress = await WALLET_FACTORY_ADDRESS(network);
 
-        // @ts-ignore
-        const walletFactory = ethers.getFactory({ contractAddress, network });
+          const walletFactory = ethers.getFactory({ contractAddress, network });
 
-        const { secretKey }: AppSchema = await App.findByPk(appId);
+          const { secretKey }: AppSchema = await App.findByPk(appId);
 
-        const salt = SALT({ walletIndex: index, secretKey });
+          const salt = SALT({ walletIndex: index, secretKey });
 
-        address = await ethers.getAddressWithFactory({ salt, walletFactory });
+          address = await ethers.getAddressWithFactory({ salt, walletFactory });
 
-        break;
+          break;
+        }
+        default:
+          return {
+            status: false,
+            message: "This blockchain is not supported yet",
+          };
       }
-      default:
-        return {
-          status: false,
-          message: "This blockchain is not supported yet",
-        };
     }
 
     const app: AppSchema = await App.findByPk(appId);
