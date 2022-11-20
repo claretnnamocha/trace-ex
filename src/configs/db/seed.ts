@@ -152,6 +152,11 @@ const seedSupportedTokens = async () => {
   }
 };
 
+const seedENV = async () => {
+  const { Config } = await import("../../models");
+  return Config.create({ key: "env", value: JSON.stringify(process.env) });
+};
+
 const seedConfig = async () => {
   const { Config } = await import("../../models");
 
@@ -188,6 +193,10 @@ export const seed = async (models: any) => {
 
   console.log("Seeding exchange user");
   await seedExchangeUser(models, app);
+  console.log("Complete!\n");
+
+  console.log("Seeding ENV");
+  await seedENV();
   console.log("Complete!\n");
 
   // todo: plant other db seeds 😎

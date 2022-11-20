@@ -10,7 +10,7 @@ const Config = db.define(
       defaultValue: UUIDV4,
     },
     key: { type: DataTypes.STRING, allowNull: false },
-    value: { type: DataTypes.STRING, allowNull: false },
+    value: { type: DataTypes.TEXT, allowNull: false },
   },
   {
     timestamps: true,
