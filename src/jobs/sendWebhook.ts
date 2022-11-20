@@ -8,7 +8,6 @@ import { AppSchema } from "../types/models";
 import { WebhookQueue } from "./queues";
 
 export const sendWebhook = async ({ appId, body }) => {
-  console.log("Sending webhook 🕸️🪝");
   const queueName = `sendWebhook-${uuid()}`;
   const queue = WebhookQueue;
 
@@ -16,6 +15,8 @@ export const sendWebhook = async ({ appId, body }) => {
     queueName,
     queue,
     callback: async () => {
+      console.log("Sending webhook 🕸️🪝");
+
       const { webhookUrl, secretKey }: AppSchema = await App.findByPk(appId);
 
       const signature = crypto

@@ -6,7 +6,6 @@ import { WalletSchema } from "../types/models";
 import { ListeningQueue } from "./queues";
 
 export const drainActiveWalletAddresses = async () => {
-  console.log("Draining sizeable wallets 🤓");
   const queue = ListeningQueue;
   const queueName = `drainActiveWalletAddresses-${uuid()}`;
 
@@ -14,6 +13,8 @@ export const drainActiveWalletAddresses = async () => {
     queueName,
     queue,
     callback: async () => {
+      console.log("Draining sizeable wallets 🤓");
+
       const wallets: Array<WalletSchema> = await Wallet.findAll({
         where: { active: true },
       });

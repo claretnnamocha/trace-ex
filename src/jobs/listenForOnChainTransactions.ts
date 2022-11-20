@@ -6,7 +6,6 @@ import { WalletSchema } from "../types/models";
 import { ListeningQueue } from "./queues";
 
 export const listenForOnChainTransactions = async () => {
-  console.log("Listening for on-chain transactions 👂");
   const queue = ListeningQueue;
   const queueName = `listenForOnChainTransactions-${uuid()}`;
 
@@ -14,6 +13,8 @@ export const listenForOnChainTransactions = async () => {
     queueName,
     queue,
     callback: async () => {
+      console.log("Listening for on-chain transactions 👂");
+
       const wallets: Array<WalletSchema> = await Wallet.findAll({
         where: { active: true },
       });

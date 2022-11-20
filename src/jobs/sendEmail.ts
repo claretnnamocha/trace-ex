@@ -4,7 +4,6 @@ import { jobs, mail } from "../helpers";
 import { EmailQueue } from "./queues";
 
 export const sendEmail = async ({ to, text, subject, html }) => {
-  console.log("Sending email 📧");
   const queueName = `sendEmail-${uuid()}`;
   const queue = EmailQueue;
 
@@ -12,6 +11,8 @@ export const sendEmail = async ({ to, text, subject, html }) => {
     queueName,
     queue,
     callback: async () => {
+      console.log("Sending email 📧");
+
       const sent = await mail.pepipost.send({
         to,
         text,
