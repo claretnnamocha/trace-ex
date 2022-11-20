@@ -345,11 +345,9 @@ export const PROVIDER = ({
   network = "zksync-goerli",
 }: {
   network?: NETWORKS;
-}): ethers.providers.JsonRpcProvider => {
+}): ethers.providers.BaseProvider => {
   const rpc = RPC_LINK({ network });
-  console.log(rpc);
-
-  return new ethers.providers.JsonRpcProvider(rpc);
+  return ethers.providers.getDefaultProvider(rpc);
 };
 
 export const getWalletFromMnemonic = ({
