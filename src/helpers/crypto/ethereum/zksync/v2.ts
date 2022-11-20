@@ -47,7 +47,7 @@ const BASE_URL = ({ network }: { network: NETWORKS }): string => {
     case "zksync-goerli":
       return "https://goerli-api.zksync.io/api/v0.2";
     default:
-      throw new Error("Network not supported");
+      throw new Error(`Network not supported '${network}'`);
   }
 };
 

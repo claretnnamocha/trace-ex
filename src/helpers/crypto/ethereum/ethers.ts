@@ -308,7 +308,7 @@ export interface NormalizedTransaction {
 }
 
 export const RPC_LINK = ({
-  network = "zksync-goerli",
+  network = "altlayer-devnet",
 }: {
   network?: NETWORKS;
 }): string => {
@@ -318,12 +318,27 @@ export const RPC_LINK = ({
     case "metis-goerli":
       return "https://goerli.gateway.metisdevops.link";
     case "altlayer-devnet":
-      return "https://devnet-rpc.altlayer.io";
+      return "https://1rpc.io/alt";
     case "zksync-goerli":
       return "https://zksync2-testnet.zksync.dev";
     case "goerli":
       if (!INFURA_API_KEY) throw new Error("Please provide INFURA_API_KEY");
       return `https://${network}.infura.io/v3/${INFURA_API_KEY}`;
+    default:
+      throw new Error("This network is not supported yet");
+  }
+};
+
+const RPC_LINK2 = ({ chainId = 9990 }: { chainId?: number }): string => {
+  switch (chainId) {
+    case 599:
+      return RPC_LINK({ network: "metis-goerli" });
+    case 9990:
+      return RPC_LINK({ network: "altlayer-devnet" });
+    case 5:
+      return RPC_LINK({ network: "goerli" });
+    case 280:
+      return RPC_LINK({ network: "zksync-goerli" });
     default:
       throw new Error("This network is not supported yet");
   }
@@ -342,18 +357,20 @@ export const getContract = ({
 };
 
 export const PROVIDER = ({
-  network = "zksync-goerli",
+  network = "altlayer-devnet",
+  chainId = 9990,
 }: {
   network?: NETWORKS;
+  chainId?: number;
 }): ethers.providers.BaseProvider => {
-  const rpc = RPC_LINK({ network });
+  const rpc = chainId ? RPC_LINK2({ chainId }) : RPC_LINK({ network });
   return ethers.providers.getDefaultProvider(rpc);
 };
 
 export const getWalletFromMnemonic = ({
   mnemonic,
   path,
-  network = "zksync-goerli",
+  network = "altlayer-devnet",
 }: {
   mnemonic: string;
   path: string;
@@ -365,7 +382,7 @@ export const getWalletFromMnemonic = ({
 
 export const getNativeTokenBalance = async ({
   address,
-  network = "zksync-goerli",
+  network = "altlayer-devnet",
 }: {
   address: string;
   network?: NETWORKS;
@@ -378,7 +395,7 @@ export const getNativeTokenBalance = async ({
 export const getERC20TokenBalance = async ({
   address,
   contractAddress,
-  network = "zksync-goerli",
+  network = "altlayer-devnet",
 }: {
   address: string;
   contractAddress: string;
@@ -394,7 +411,7 @@ export const sendNativeToken = async ({
   reciever,
   amount,
   privateKey,
-  network = "zksync-goerli",
+  network = "altlayer-devnet",
 }: {
   reciever: string;
   amount: number;
@@ -425,7 +442,7 @@ export const sendERC20Token = async ({
   amount,
   contractAddress,
   privateKey,
-  network = "zksync-goerli",
+  network = "altlayer-devnet",
 }: {
   reciever: string;
   amount: number;
@@ -474,7 +491,7 @@ export const sendERC20Token = async ({
 
 export const sendTransaction = async ({
   hash,
-  network = "zksync-goerli",
+  network = "altlayer-devnet",
 }: {
   hash: string;
   network?: NETWORKS;
@@ -725,7 +742,7 @@ export const WALLET_FACTORY_ABI = [
 
 export const getFactory = ({
   contractAddress,
-  network = "zksync-goerli",
+  network = "altlayer-devnet",
   privateKey = undefined,
 }: {
   contractAddress: string;
@@ -837,10 +854,10 @@ export const drainERC20WithFactory = async ({
 
   await validateFactorySigner({ walletFactory });
 
-  const { name: network } = await walletFactory.signer.provider.getNetwork();
+  const { chainId } = await walletFactory.signer.provider.getNetwork();
 
   // @ts-ignore
-  const signer = PROVIDER({ network });
+  const signer = PROVIDER({ chainId });
   const token = getContract({
     abi: IERC20_ABI,
     contractAddress: tokenAddress,
@@ -882,10 +899,10 @@ export const transferERC20FromFactory = async ({
 }) => {
   await validateFactorySigner({ walletFactory });
 
-  const { name: network } = await walletFactory.signer.provider.getNetwork();
+  const { chainId } = await walletFactory.signer.provider.getNetwork();
 
   // @ts-ignore
-  const signer = PROVIDER({ network });
+  const signer = PROVIDER({ chainId });
   const token = getContract({
     abi: IERC20_ABI,
     contractAddress: tokenAddress,
