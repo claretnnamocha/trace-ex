@@ -311,19 +311,19 @@ export const RPC_LINK = ({
   network = "zksync-goerli",
 }: {
   network?: NETWORKS;
-}): any[] => {
+}): string => {
   const { INFURA_API_KEY } = process.env;
 
   switch (network) {
     case "metis-goerli":
-      return ["https://goerli.gateway.metisdevops.link", 599];
+      return "https://goerli.gateway.metisdevops.link";
     case "altlayer-devnet":
-      return ["https://devnet-rpc.altlayer.io", 9990];
+      return "https://devnet-rpc.altlayer.io";
     case "zksync-goerli":
-      return ["https://zksync2-testnet.zksync.dev"];
+      return "https://zksync2-testnet.zksync.dev";
     case "goerli":
       if (!INFURA_API_KEY) throw new Error("Please provide INFURA_API_KEY");
-      return [`https://${network}.infura.io/v3/${INFURA_API_KEY}`, 5];
+      return `https://${network}.infura.io/v3/${INFURA_API_KEY}`;
     default:
       throw new Error("This network is not supported yet");
   }
@@ -346,10 +346,10 @@ export const PROVIDER = ({
 }: {
   network?: NETWORKS;
 }): ethers.providers.JsonRpcProvider => {
-  const rpc = RPC_LINK({ network })[0];
-  const chainId = RPC_LINK({ network })[1];
+  const rpc = RPC_LINK({ network });
+  console.log(rpc);
 
-  return new ethers.providers.JsonRpcProvider(rpc, chainId);
+  return new ethers.providers.JsonRpcProvider(rpc);
 };
 
 export const getWalletFromMnemonic = ({

@@ -96,7 +96,7 @@ export const getBalance = async ({
   token?: string;
   network?: NETWORKS;
 }): Promise<number> => {
-  const rpc = RPC_LINK({ network })[0];
+  const rpc = RPC_LINK({ network });
   const response = await fetch(rpc, {
     body: JSON.stringify({
       jsonrpc: "2.0",
