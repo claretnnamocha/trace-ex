@@ -58,7 +58,7 @@ export const getAllTransactions = async ({
   page?: number;
   pageSize?: number;
 }): Promise<Transaction[]> => {
-  const provider = await PROVIDER({ network });
+  const provider = PROVIDER({ network });
   const { chainId } = await provider.getNetwork();
   const url =
     `v1/${chainId}/address/${address}/transactions_v2` +
