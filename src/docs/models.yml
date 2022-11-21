@@ -1,0 +1,112 @@
+definitions:
+  changePassword:
+    type: object
+    properties:
+      password:
+        type: string
+        required: true
+      newPassword:
+        type: string
+        required: true
+      logOtherDevicesOut:
+        type: boolean
+        default: false
+
+  editProfile:
+    properties:
+      firstName:
+        type: string
+      lastName:
+        type: string
+      avatar:
+        type: string
+      location:
+        type: string
+
+  createApp:
+    properties:
+      name:
+        type: string
+        required: true
+
+  updateApp:
+    properties:
+      name:
+        type: string
+        required: true
+      displayName:
+        type: string
+      supportEmail:
+        type: string
+      instantSettlement:
+        type: boolean
+
+  signIn:
+    type: object
+    properties:
+      user:
+        type: string
+        required: true
+        default: admin@trace.exchange
+      password:
+        type: string
+        required: true
+        default: Password123!
+
+  signUp:
+    type: object
+    properties:
+      firstName:
+        type: string
+      lastName:
+        type: string
+      phone:
+        type: string
+      email:
+        type: string
+        required: true
+      password:
+        type: string
+        required: true
+
+  initiateReset:
+    type: object
+    properties:
+      email:
+        type: string
+        required: true
+
+  resetPassword:
+    type: object
+    properties:
+      email:
+        type: string
+        required: true
+      token:
+        type: string
+        required: true
+      password:
+        type: string
+
+  sendCrypto:
+    type: object
+    properties:
+      to:
+        type: string
+        required: true
+      amount:
+        type: number
+        required: true
+      token:
+        type: string
+        enum: ["alt", "kwt", "metis"]
+        required: true
+      network:
+        type: string
+        enum:
+          ["altlayer-devnet", "metis-goerli", "zksync-goerli", "zksync-mainnet"]
+        required: true
+      blockchain:
+        type: string
+        enum: ["ethereum"]
+        required: true

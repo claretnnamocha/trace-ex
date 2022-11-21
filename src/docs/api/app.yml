@@ -169,27 +169,3 @@ paths:
           description: Error
         500:
           description: Server down
-
-definitions:
-  sendCrypto:
-    type: object
-    properties:
-      to:
-        type: string
-        required: true
-      amount:
-        type: number
-        required: true
-      token:
-        type: string
-        enum: ["alt", "kwt", "metis"]
-        required: true
-      network:
-        type: string
-        enum:
-          ["altlayer-devnet", "metis-goerli", "zksync-goerli", "zksync-mainnet"]
-        required: true
-      blockchain:
-        type: string
-        enum: ["ethereum"]
-        required: true
