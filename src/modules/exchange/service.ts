@@ -1079,6 +1079,7 @@ export const sendCrypto = async (
 
     if (blockchain === "ethereum") {
       switch (network) {
+        case "metis-goerli":
         case "altlayer-devnet": {
           const contractAddress = await WALLET_FACTORY_ADDRESS(network);
           const walletFactory = ethers.getFactory({
