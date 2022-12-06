@@ -1,7 +1,7 @@
 import fetch from "node-fetch";
 import { NormalizedTransaction } from "./ethers";
 
-type LAYER_NETWORKS = "altlayer-devnet" | "metis-goerli";
+type LAYER_NETWORKS = "altlayer-devnet" | "metis-goerli" | "trust-testnet";
 
 interface Token {
   cataloged: boolean;
@@ -80,6 +80,8 @@ const BASE_URL = ({ network }: { network: LAYER_NETWORKS }): string => {
       return "https://devnet-explorer.altlayer.io/api";
     case "metis-goerli":
       return "https://goerli.explorer.metisdevops.link/api";
+    case "trust-testnet":
+      return "https://trustscan.one/api";
     default:
       throw new Error("Network not supported");
   }
