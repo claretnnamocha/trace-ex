@@ -385,7 +385,6 @@ paths:
         - in: query
           name: network
           enum: ["zksync-goerli", "altlayer-devnet", "metis-goerli"]
-          required: true
       responses:
         200:
           description: Success

@@ -7,8 +7,10 @@ import { Op } from "sequelize";
 import { v4 as uuid } from "uuid";
 import { displayName } from "../../../package.json";
 import { WALLET_FACTORY_ADDRESS } from "../../configs/constants";
+import { db } from "../../configs/db";
 import { spenderPrivateKey } from "../../configs/env";
 import { jwt, sms } from "../../helpers";
+import { currentPrices } from "../../helpers/crypto/coingecko";
 import { ethers } from "../../helpers/crypto/ethereum";
 import { sendEmail } from "../../jobs";
 import {
@@ -916,23 +918,42 @@ export const getWallets = async (
       };
     }
 
-    //   const query = `
-    //     SELECT
-    //       "token" ->> 'symbol' AS "symbol",
-    //       SUM(CAST(wallet. "platformBalance" AS DECIMAL) / pow(10, CAST(token ->> 'decimals' AS INTEGER))) AS "balance"
-    //     FROM
-    //       wallet
-    //     WHERE
-    //       "index" = :index
-    //     GROUP BY
-    //       "token" ->> 'symbol'
-    // `;
+    const query = `
+        SELECT
+          "token" ->> 'symbol' AS "symbol",
+          "token" ->> 'coinGeckoId' AS "coinGeckoId",
+          "address",
+          SUM(CAST(wallet. "platformBalance" AS DECIMAL) / pow(10, CAST(token ->> 'decimals' AS INTEGER))) AS "balance"
+        FROM
+          wallet
+        WHERE
+          "index" = :index
+        GROUP BY
+          "token" ->> 'symbol',
+          "token" ->> 'coinGeckoId',
+          "address"
+    `;
 
-    //   const [data] = await db.query(query, {
-    //     replacements: { index: user.index },
-    //   });
+    const [wallets]: any = await db.query(query, {
+      replacements: { index: user.index },
+    });
 
-    const data = await Wallet.findAll({ where: { index: user.index } });
+    const usdPrices = await currentPrices({
+      tokens: wallets.map(({ coinGeckoId }) => coinGeckoId),
+    });
+
+    let totalUsdValue = 0;
+
+    for (let index = 0; index < wallets.length; index += 1) {
+      const usdValue = parseFloat(
+        (usdPrices[index] * wallets[index].balance).toFixed(2)
+      );
+      wallets[index].usdValue = usdValue;
+
+      totalUsdValue += usdValue;
+    }
+
+    const data = { wallets, totalUsdValue };
 
     return { status: true, message: "Wallets", data };
   } catch (error) {
@@ -967,12 +988,27 @@ export const getWallet = async (
       };
     }
 
-    const data = await Wallet.findOne({
-      where: {
-        index: user.index,
-        "token.symbol": token,
-        "token.network": network,
-      },
+    const query = `
+      SELECT
+        "token" ->> 'coinGeckoId' AS "coinGeckoId",
+        "token" ->> 'symbol' AS "symbol",
+        "address",
+        SUM(CAST(wallet. "platformBalance" AS DECIMAL) / pow(10, CAST(token ->> 'decimals' AS INTEGER))) AS "balance"
+      FROM
+        wallet
+      WHERE
+        "index" = :index
+      AND 
+        "token" ->> 'symbol' = :token
+        ${network ? "AND \"token\" ->> 'network' = :network" : ""}
+      GROUP BY
+        "token" ->> 'symbol',
+        "token" ->> 'coinGeckoId',
+        "address"
+    `;
+
+    const [[data]]: any = await db.query(query, {
+      replacements: { index: user.index, token, network },
     });
 
     if (!data) {
@@ -981,6 +1017,12 @@ export const getWallet = async (
         code: 404,
       };
     }
+
+    const [usdPrice] = await currentPrices({
+      tokens: [data?.coinGeckoId],
+    });
+
+    data.usdValue = parseFloat((usdPrice * data.balance).toFixed(2));
 
     return { status: true, message: "Wallet", data };
   } catch (error) {
@@ -1063,11 +1105,15 @@ export const sendCrypto = async (
       },
     });
 
+    const {
+      data: { balance },
+    }: any = await getWallet({ token: symbol, userId });
+
     const realAmount = new BigNumber(amount)
       .multipliedBy(10 ** wallet.token.decimals)
       .toNumber();
 
-    if (new BigNumber(realAmount).gte(wallet.platformBalance))
+    if (new BigNumber(amount).gte(balance))
       return { status: false, message: "Insufficient balance" };
 
     if (!wallet) {

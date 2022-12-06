@@ -1,7 +1,9 @@
 import { Router } from "express";
 import { authenticate, controller, validate } from "../../middlewares";
 import * as user from "./service";
+import * as app from "../api/app/service";
 import * as validator from "./validators";
+import * as appValidator from "../api/app/validators";
 
 const routes = Router();
 
@@ -46,5 +48,35 @@ routes.get(
 routes.post("/log-other-devices-out", controller(user.logOtherDevicesOut));
 
 routes.post("/sign-out", controller(user.signOut));
+
+//
+// Apps
+//
+
+routes.get("/apps", controller(app.getApps));
+
+routes.get(
+  "/get-app-keys",
+  validate(appValidator.createApp),
+  controller(app.getAppKeys)
+);
+
+routes.post(
+  "/create-app",
+  validate(appValidator.createApp),
+  controller(app.createApp)
+);
+
+routes.put(
+  "/update-app",
+  validate(appValidator.updateApp),
+  controller(app.updateApp)
+);
+
+routes.delete(
+  "/delete-app",
+  validate(appValidator.createApp),
+  controller(app.deleteApp)
+);
 
 export default routes;

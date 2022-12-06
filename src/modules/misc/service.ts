@@ -1,3 +1,4 @@
+import { db } from "../../configs/db";
 import { SupportedToken } from "../../models";
 import { others } from "../../types/services";
 
@@ -16,18 +17,16 @@ export const ping = (): others.Response => ({
  */
 export const supportedTokens = async (): Promise<others.Response> => {
   try {
-    const data = await SupportedToken.findAll({});
+    const query = `
+        SELECT DISTINCT
+          symbol,
+          "name"
+        FROM
+          "supportedToken"
+    `;
 
-    //     const query = `
-    //     SELECT DISTINCT
-    //       symbol,
-    //       "name"
-    //     FROM
-    //       "supportedToken"
-    // `;
-
-    //   const [data] = await db.query(query, {});
-    return { status: true, data, message: "Tokens" };
+    const [data] = await db.query(query, {});
+    return { status: true, message: "Tokens", data };
   } catch (error) {
     return {
       payload: {

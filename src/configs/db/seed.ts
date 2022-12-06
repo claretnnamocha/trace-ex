@@ -66,7 +66,7 @@ const supportedTokens = {
     "altlayer-devnet": {
       alt: {
         name: "Alt Coin",
-        coinGeckoId: "alt-coin",
+        coinGeckoId: "altlayer-token",
         isNativeToken: true,
         isStableToken: false,
         contractAddress: undefined,
@@ -96,16 +96,16 @@ const supportedTokens = {
         minimumDrainAmount: 1,
         isTestnet: true,
       },
-      // kwt: {
-      //   name: "Keeway Token",
-      //   coinGeckoId: "keeway-token",
-      //   isNativeToken: false,
-      //   isStableToken: false,
-      //   contractAddress: "0xBa81239FF1BA21A2Ff80203f932A856E27A78526",
-      //   decimals: 18,
-      //   minimumDrainAmount: 1,
-      //   isTestnet: true,
-      // },
+      kwt: {
+        name: "Keeway Token",
+        coinGeckoId: "keeway-token",
+        isNativeToken: false,
+        isStableToken: false,
+        contractAddress: "0xBa81239FF1BA21A2Ff80203f932A856E27A78526",
+        decimals: 18,
+        minimumDrainAmount: 1,
+        isTestnet: true,
+      },
     },
   },
 };

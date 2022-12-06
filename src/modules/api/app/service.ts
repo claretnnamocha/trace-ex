@@ -2,6 +2,7 @@ import { BigNumber } from "bignumber.js";
 import { SALT, WALLET_FACTORY_ADDRESS } from "../../../configs/constants";
 import { db } from "../../../configs/db";
 import { spenderPrivateKey } from "../../../configs/env";
+import { currentPrices } from "../../../helpers/crypto/coingecko";
 import { ethers } from "../../../helpers/crypto/ethereum";
 import { App, SupportedToken, User, Wallet } from "../../../models";
 import { AppSchema, UserSchema, WalletSchema } from "../../../types/models";
@@ -345,10 +346,7 @@ export const getWallet = async (
 
     const query = `
     SELECT  *
-       ,(CAST(wallet."platformBalance" AS DECIMAL) / pow(10,CAST(token ->> 'decimals' AS INTEGER))) AS "platformBalance"
-       ,(CAST(wallet."onChainBalance" AS DECIMAL) / pow(10,CAST(token ->> 'decimals' AS INTEGER)))  AS "onChainBalance"
-       ,(CAST(wallet."totalRecieved" AS DECIMAL) / pow(10,CAST(token ->> 'decimals' AS INTEGER)))   AS "totalRecieved"
-       ,(CAST(wallet."totalSpent" AS DECIMAL) / pow(10,CAST(token ->> 'decimals' AS INTEGER)))      AS "totalSpent"
+       ,(CAST(wallet."balance" AS DECIMAL) / pow(10,CAST(token ->> 'decimals' AS INTEGER))) AS "balance"
     FROM wallet
     WHERE app ->> 'id' = :appId
     AND id = :reference
@@ -401,16 +399,16 @@ export const getAppDefaultWallets = async (
     ORDER BY "token" ->> 'name', "index"
     `;
 
-    const [wallets] = await db.query(query, { replacements: { appId } });
-    const data = [];
+    const [data] = await db.query(query, { replacements: { appId } });
+    // const data = [];
 
-    for (let index = 0; index < wallets.length; index += 1) {
-      const { id: reference }: any = wallets[index];
-      /* eslint-disable no-await-in-loop */
-      const { data: wallet }: any = await getWallet({ reference, appId });
+    // for (let index = 0; index < wallets.length; index += 1) {
+    //   const { id: reference }: any = wallets[index];
+    //   /* eslint-disable no-await-in-loop */
+    //   const { data: wallet }: any = await getWallet({ reference, appId });
 
-      data.push(wallet);
-    }
+    //   data.push(wallet);
+    // }
     return {
       status: true,
       message: "App default wallets",
@@ -440,23 +438,46 @@ export const getAppWallets = async (
     const { appId, page, pageSize } = params;
     const where = { "app.id": appId, isDeleted: false };
 
-    const wallets = await Wallet.findAll({
-      where,
-      limit: pageSize,
-      offset: pageSize * (page - 1),
-    });
-
     const total: number = await Wallet.count({ where });
 
-    const data = [];
+    const query = `
+        SELECT
+          "token" ->> 'symbol' AS "symbol",
+          "token" ->> 'coinGeckoId' AS "coinGeckoId",
+          SUM(CAST(wallet. "platformBalance" AS DECIMAL) / pow(10, CAST(token ->> 'decimals' AS INTEGER))) AS "balance"
+        FROM
+          wallet
+        WHERE
+          "app" ->> 'id' = :appId
+          AND "isDeleted" = false
+        GROUP BY
+          "token" ->> 'coinGeckoId',
+          "token" ->> 'symbol'
+        LIMIT :limit
+        OFFSET :offset
+    `;
+
+    const [wallets]: any = await db.query(query, {
+      replacements: { appId, limit: pageSize, offset: pageSize * (page - 1) },
+    });
+
+    const usdPrices = await currentPrices({
+      tokens: wallets.map(({ coinGeckoId }) => coinGeckoId),
+    });
+
+    let totalUsdValue = 0;
 
     for (let index = 0; index < wallets.length; index += 1) {
-      const { id: reference }: any = wallets[index];
-      /* eslint-disable no-await-in-loop */
-      const { data: wallet }: any = await getWallet({ reference, appId });
+      const usdValue = parseFloat(
+        (usdPrices[index] * wallets[index].balance).toFixed(2)
+      );
+      wallets[index].usdValue = usdValue;
 
-      data.push(wallet);
+      totalUsdValue += usdValue;
     }
+
+    const data = { wallets, totalUsdValue };
+
     return {
       status: true,
       message: "App wallets",

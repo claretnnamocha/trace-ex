@@ -83,8 +83,7 @@ export const getWallet = {
   network: Joi.string()
     .valid(...validNetworks)
     .insensitive()
-    .lowercase()
-    .required(),
+    .lowercase(),
 };
 
 export const transactions = {
