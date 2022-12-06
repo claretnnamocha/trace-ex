@@ -297,7 +297,8 @@ export type NETWORKS =
   | "goerli"
   | "metis-goerli"
   | "zksync-goerli"
-  | "zksync-mainnet";
+  | "zksync-mainnet"
+  | "trust-testnet";
 
 export interface NormalizedTransaction {
   amount: string;
@@ -315,6 +316,8 @@ export const RPC_LINK = ({
   const { INFURA_API_KEY } = process.env;
 
   switch (network) {
+    case "trust-testnet":
+      return "https://api.testnet-dev.trust.one";
     case "metis-goerli":
       return "https://goerli.gateway.metisdevops.link";
     case "altlayer-devnet":

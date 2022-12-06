@@ -259,6 +259,7 @@ export const generateWallet = async (
 
     if (blockchain === "ethereum") {
       switch (network) {
+        case "trust-testnet":
         case "altlayer-devnet":
         case "metis-goerli": {
           const contractAddress = await WALLET_FACTORY_ADDRESS(network);
@@ -661,6 +662,8 @@ export const sendCrypto = async (
 
     if (blockchain === "ethereum") {
       switch (network) {
+        case "trust-testnet":
+        case "metis-goerli":
         case "altlayer-devnet": {
           const contractAddress = await WALLET_FACTORY_ADDRESS(network);
           const walletFactory = ethers.getFactory({

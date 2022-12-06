@@ -20,7 +20,7 @@ import { api, others } from "../../../types/services";
 const { FRONTEND_BASEURL } = process.env;
 
 /**
- * Get L2 balance
+ * Get balance
  * @param {api.utils.GetTokenBalance} params  Request Body
  * @returns {others.Response} Contains status, message and data if any of the operation
  */
@@ -47,6 +47,8 @@ export const getBalance = async (
     if (blockchain === "ethereum") {
       switch (network) {
         case "altlayer-devnet":
+        case "trust-testnet":
+        case "metis-goerli":
           if (isNativeToken) {
             wei = await ethers.getNativeTokenBalance({ address, network });
           } else {
@@ -161,6 +163,7 @@ export const updateWalletBalance = async (
     switch (network) {
       case "zksync-goerli":
       case "altlayer-devnet":
+      case "trust-testnet":
       case "metis-goerli":
         if (isNativeToken) {
           onChainBalance = await ethers.getNativeTokenBalance({
@@ -238,6 +241,7 @@ export const logWalletTransactions = async (
         );
         break;
       case "metis-goerli":
+      case "trust-testnet":
       case "altlayer-devnet":
         normalizedTransaction = await blockscout.normalizeTransaction(
           transaction,
@@ -381,6 +385,7 @@ export const updateWalletTransactions = async (
           });
           break;
         case "metis-goerli":
+        case "trust-testnet":
         case "altlayer-devnet":
           transactions = await blockscout.getAllTransactions({
             address,
@@ -441,7 +446,9 @@ export const drainWalletOnChain = async (
 
     if (blockchain === "ethereum") {
       switch (network) {
-        case "altlayer-devnet": {
+        case "altlayer-devnet":
+        case "metis-goerli":
+        case "trust-testnet": {
           const contractAddress = await WALLET_FACTORY_ADDRESS(network);
           const walletFactory = ethers.getFactory({
             contractAddress,
