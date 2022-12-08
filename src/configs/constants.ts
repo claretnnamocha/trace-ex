@@ -24,3 +24,11 @@ export const WALLET_FACTORY_ADDRESS = async (
 
   return config?.value;
 };
+
+export const VALID_NETWORKS = [
+  "zksync-goerli",
+  "altlayer-devnet",
+  "metis-goerli",
+];
+export const VALID_ASSETS = ["alt", "kwt", "metis", "eth"];
+export const VALID_BLOCKCHAINS = ["ethereum"];
