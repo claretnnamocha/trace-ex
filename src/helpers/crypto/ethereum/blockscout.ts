@@ -1,7 +1,12 @@
 import fetch from "node-fetch";
 import { NormalizedTransaction } from "./ethers";
 
-type LAYER_NETWORKS = "altlayer-devnet" | "metis-goerli" | "trust-testnet";
+type NETWORKS =
+  | "altlayer-devnet"
+  | "metis-goerli"
+  | "trust-testnet"
+  | "celo"
+  | "ethereum";
 
 interface Token {
   cataloged: boolean;
@@ -74,7 +79,7 @@ interface InternalTransaction {
   value: string;
 }
 
-const BASE_URL = ({ network }: { network: LAYER_NETWORKS }): string => {
+const BASE_URL = ({ network }: { network: NETWORKS }): string => {
   switch (network) {
     case "altlayer-devnet":
       return "https://devnet-explorer.altlayer.io/api";
@@ -82,6 +87,10 @@ const BASE_URL = ({ network }: { network: LAYER_NETWORKS }): string => {
       return "https://goerli.explorer.metisdevops.link/api";
     case "trust-testnet":
       return "https://trustscan.one/api";
+    case "celo":
+      return "https://explorer.celo.org/mainnet/api";
+    case "ethereum":
+      return "https://blockscout.com/eth/mainnet/api";
     default:
       throw new Error("Network not supported");
   }
@@ -92,7 +101,7 @@ export const getTransaction = async ({
   network = "altlayer-devnet",
 }: {
   txHash: string;
-  network?: LAYER_NETWORKS;
+  network?: NETWORKS;
 }): Promise<Transaction> => {
   const link = `${BASE_URL({
     network,
@@ -108,7 +117,7 @@ export const getToken = async ({
   network = "altlayer-devnet",
 }: {
   contractAddress: string;
-  network?: LAYER_NETWORKS;
+  network?: NETWORKS;
 }): Promise<Token> => {
   const link = `${BASE_URL({
     network,
@@ -128,7 +137,7 @@ const getAllTokenTransactions = async ({
   address: string;
   page?: number;
   offset?: number;
-  network?: LAYER_NETWORKS;
+  network?: NETWORKS;
 }): Promise<TokenTransaction[]> => {
   const url = `${BASE_URL({
     network,
@@ -160,7 +169,7 @@ const getAllInternalTransactions = async ({
   address: string;
   page?: number;
   offset?: number;
-  network?: LAYER_NETWORKS;
+  network?: NETWORKS;
 }): Promise<TokenTransaction[]> => {
   const url = `${BASE_URL({
     network,
@@ -192,7 +201,7 @@ export const getAllTransactions = async ({
   address: string;
   page?: number;
   offset?: number;
-  network?: LAYER_NETWORKS;
+  network?: NETWORKS;
 }): Promise<Transaction[] | TokenTransaction[] | InternalTransaction[]> => {
   const url = `${BASE_URL({
     network,
@@ -217,27 +226,35 @@ export const getAllTransactions = async ({
   ];
 };
 
-const getNativeTokenSymbol = (network: LAYER_NETWORKS) => {
-  return network === "altlayer-devnet" ? "ALT" : "METIS";
+const getNativeTokenSymbol = (network: NETWORKS) => {
+  switch (network) {
+    case "trust-testnet":
+      return "EVM";
+    case "altlayer-devnet":
+      return "ALT";
+    default:
+      return "METIS";
+  }
 };
 
 export const normalizeTransaction = async (
   transaction: Transaction | TokenTransaction | InternalTransaction | any,
   address: string,
-  network: LAYER_NETWORKS = "altlayer-devnet"
+  network: NETWORKS = "altlayer-devnet"
 ): Promise<NormalizedTransaction> => {
   const type =
     transaction.to.toLowerCase() === address.toLowerCase() ? "credit" : "debit";
   const amount = transaction.value;
-  const token =
-    transaction.contractAddress === ""
-      ? getNativeTokenSymbol(network)
-      : (
-          await getToken({
-            contractAddress: transaction.contractAddress,
-            network,
-          })
-        ).symbol;
+  let token: string;
+  if (transaction.contractAddress === "") {
+    token = getNativeTokenSymbol(network);
+  } else {
+    const { symbol } = await getToken({
+      contractAddress: transaction.contractAddress,
+      network,
+    });
+    token = symbol;
+  }
 
   return {
     transaction: {
