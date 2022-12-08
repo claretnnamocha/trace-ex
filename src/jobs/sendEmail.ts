@@ -1,9 +1,12 @@
 import { Job, JobAttributesData } from "agenda";
 import { v4 as uuid } from "uuid";
+import { enableMailing } from "../configs/env";
 import { jobs, mail } from "../helpers";
 import { EmailQueue } from "./queues";
 
 export const sendEmail = async ({ to, text, subject, html }) => {
+  if (!enableMailing) return;
+
   const queueName = `sendEmail-${uuid()}`;
   const queue = EmailQueue;
 

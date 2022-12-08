@@ -1,4 +1,5 @@
 import { v4 as uuid } from "uuid";
+import { enableWalletScan } from "../configs/env";
 import { jobs } from "../helpers";
 import { Wallet } from "../models";
 import { updateWalletTransactions } from "../modules/api/utils/service";
@@ -6,6 +7,8 @@ import { WalletSchema } from "../types/models";
 import { ListeningQueue } from "./queues";
 
 export const listenForOnChainTransactions = async () => {
+  if (!enableWalletScan) return;
+
   const queue = ListeningQueue;
   const queueName = `listenForOnChainTransactions-${uuid()}`;
 
