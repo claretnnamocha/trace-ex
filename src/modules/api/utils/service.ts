@@ -120,7 +120,7 @@ export const updateWalletBalance = async (
       confirmed,
     });
 
-    let [{ amount: totalRecieved }]: Array<TransactionSchema> =
+    let [{ amount: totalRecieved }]: TransactionSchema[] =
       await Transaction.findAll({
         where: { type: "credit", "wallet.id": walletId, shouldAggregate: true },
         attributes: [
@@ -135,7 +135,7 @@ export const updateWalletBalance = async (
       });
     totalRecieved = new BigNumber(totalRecieved || 0).toFixed();
 
-    let [{ amount: totalSpent }]: Array<TransactionSchema> =
+    let [{ amount: totalSpent }]: TransactionSchema[] =
       await Transaction.findAll({
         where: { type: "debit", "wallet.id": walletId, shouldAggregate: true },
         attributes: [
@@ -224,7 +224,11 @@ export const logWalletTransactions = async (
     const { walletId, transaction } = params;
 
     const {
-      token: { network, symbol, decimals, blockchain },
+      token: {
+        network: { name: network, blockchain },
+        symbol,
+        decimals,
+      },
       address,
       app: { id: appId, webhookUrl, displayName, supportEmail },
       id: walletReference,
@@ -366,7 +370,7 @@ export const updateWalletTransactions = async (
   try {
     const { address } = params;
 
-    const wallets: Array<WalletSchema> = await Wallet.findAll({
+    const wallets: WalletSchema[] = await Wallet.findAll({
       where: { address },
     });
 
@@ -435,10 +439,9 @@ export const drainWalletOnChain = async (
       token: {
         minimumDrainAmount,
         decimals,
-        network,
+        network: { name: network, blockchain },
         isNativeToken,
         contractAddress: tokenAddress,
-        blockchain,
       },
       app: { id: appId },
       index: walletIndex,

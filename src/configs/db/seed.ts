@@ -86,11 +86,6 @@ const supportedTokens = {
 };
 let counter = 1;
 
-const ALTLAYER_WALLET_FACTORY_ADDRESS =
-  "0x1108a7F63A40c763B48192a02c52D8c6CE77939A";
-const METIS_WALLET_FACTORY_ADDRESS =
-  "0x1108a7F63A40c763B48192a02c52D8c6CE77939A";
-
 const createDefaultUser = async () => {
   const { User } = await import("../../models");
 
@@ -116,7 +111,7 @@ const createDefaultExchangeUser = async (app: AppSchema) => {
   let walletIndex: number = await Wallet.max("index");
   walletIndex = walletIndex === null ? 0 : walletIndex + 1;
 
-  ExchangeUser.create({
+  await ExchangeUser.create({
     email: "admin@trace.exchange",
     firstName: "Claret",
     lastName: "Nnamocha",
@@ -133,7 +128,10 @@ const createDefaultExchangeUser = async (app: AppSchema) => {
   });
 
   for (let index = 0; index < tokens.length; index += 1) {
-    const { blockchain, network, symbol } = tokens[index];
+    const {
+      network: { name: network, blockchain },
+      symbol,
+    } = tokens[index];
 
     await generateWallet({
       appId: app.id,
@@ -268,6 +266,13 @@ const createSupportedTokens = async () => {
 const createConfig = async () => {
   const { Config } = await import("../../models");
 
+  const ALTLAYER_WALLET_FACTORY_ADDRESS =
+    "0x1108a7F63A40c763B48192a02c52D8c6CE77939A";
+  const METIS_WALLET_FACTORY_ADDRESS =
+    "0x1108a7F63A40c763B48192a02c52D8c6CE77939A";
+  const GOERLI_WALLET_FACTORY_ADDRESS =
+    "0xBa81239FF1BA21A2Ff80203f932A856E27A78526";
+
   await Config.bulkCreate([
     {
       key: "ALTLAYER_WALLET_FACTORY_ADDRESS",
@@ -276,6 +281,10 @@ const createConfig = async () => {
     {
       key: "METIS_WALLET_FACTORY_ADDRESS",
       value: METIS_WALLET_FACTORY_ADDRESS,
+    },
+    {
+      key: "GOERLI_WALLET_FACTORY_ADDRESS",
+      value: GOERLI_WALLET_FACTORY_ADDRESS,
     },
   ]);
 

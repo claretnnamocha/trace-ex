@@ -239,7 +239,11 @@ export const generateWallet = async (
     let { index } = params;
 
     const token: SupportedTokenSchema = await SupportedToken.findOne({
-      where: { "network.name": network, blockchain, symbol },
+      where: {
+        "network.name": network,
+        "network.blockchain": blockchain,
+        symbol,
+      },
     });
 
     if (!token) return { status: false, message: "Token not found" };
@@ -261,6 +265,7 @@ export const generateWallet = async (
       switch (network) {
         case "trust-testnet":
         case "altlayer-devnet":
+        case "goerli":
         case "metis-goerli": {
           const contractAddress = await WALLET_FACTORY_ADDRESS(network);
 

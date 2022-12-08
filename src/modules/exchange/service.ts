@@ -67,7 +67,7 @@ export const signUp = async (
 
     const app: AppSchema = await App.findByPk(appId);
 
-    const tokens: Array<SupportedTokenSchema> = await SupportedToken.findAll({
+    const tokens: SupportedTokenSchema[] = await SupportedToken.findAll({
       where: { verified: true },
     });
 
@@ -75,7 +75,10 @@ export const signUp = async (
     walletIndex = walletIndex === null ? 0 : walletIndex + 1;
 
     for (let index = 0; index < tokens.length; index += 1) {
-      const { blockchain, network, symbol } = tokens[index];
+      const {
+        network: { name: network, blockchain },
+        symbol,
+      } = tokens[index];
       await generateWallet({
         appId,
         blockchain,
@@ -767,7 +770,7 @@ export const getAllUsers = async (
     if ("active" in params) where = { ...where, active };
     if ("isDeleted" in params) where = { ...where, isDeleted };
 
-    const data: Array<ExchangeUserSchema> = await ExchangeUser.findAll({
+    const data: ExchangeUserSchema[] = await ExchangeUser.findAll({
       where,
       order: [["createdAt", "DESC"]],
       limit: pageSize,
