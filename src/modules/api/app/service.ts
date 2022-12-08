@@ -239,7 +239,7 @@ export const generateWallet = async (
     let { index } = params;
 
     const token: SupportedTokenSchema = await SupportedToken.findOne({
-      where: { network, blockchain, symbol },
+      where: { "network.name": network, blockchain, symbol },
     });
 
     if (!token) return { status: false, message: "Token not found" };
@@ -636,7 +636,7 @@ export const sendCrypto = async (
     const { amount, network, token: symbol, to, blockchain, appId } = params;
 
     const token: SupportedTokenSchema = await SupportedToken.findOne({
-      where: { symbol, network, blockchain },
+      where: { symbol, "network.name": network, blockchain },
     });
 
     if (!token)

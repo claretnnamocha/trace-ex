@@ -31,7 +31,7 @@ export const getBalance = async (
     const { network, address, token: symbol, blockchain } = params;
 
     const token: SupportedTokenSchema = await SupportedToken.findOne({
-      where: { symbol, network },
+      where: { symbol, "network.name": network },
     });
 
     if (!token) {

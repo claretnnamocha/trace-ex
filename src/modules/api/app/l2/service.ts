@@ -1,3 +1,4 @@
+import { Op } from "sequelize";
 import { HD_PATH } from "../../../../configs/constants";
 import { mnemonic } from "../../../../configs/env";
 import { ethers, zksync } from "../../../../helpers/crypto/ethereum";
@@ -20,6 +21,7 @@ export const deposit = async (
       where: {
         "token.symbol": symbol,
         "token.network": network,
+        "token.parentNetwork": { [Op.ne]: null },
         "app.id": appId,
       },
     });
