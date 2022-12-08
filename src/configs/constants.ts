@@ -13,10 +13,18 @@ export const SALT = ({ secretKey, walletIndex }) =>
 export const WALLET_FACTORY_ADDRESS = async (
   network: string = "altlayer-devnet"
 ) => {
-  const key =
-    network === "altlayer-devnet"
-      ? "ALTLAYER_WALLET_FACTORY_ADDRESS"
-      : "METIS_WALLET_FACTORY_ADDRESS";
+  let key: string;
+  switch (network) {
+    case "altlayer-devnet":
+      key = "ALTLAYER_WALLET_FACTORY_ADDRESS";
+      break;
+    case "goerli":
+      key = "GOERLI_WALLET_FACTORY_ADDRESS";
+      break;
+    default:
+      key = "METIS_WALLET_FACTORY_ADDRESS";
+      break;
+  }
 
   const config: ConfigSchema = await Config.findOne({
     where: { key },
