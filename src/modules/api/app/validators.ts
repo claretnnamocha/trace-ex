@@ -1,4 +1,9 @@
 import Joi from "joi";
+import {
+  VALID_ASSETS,
+  VALID_BLOCKCHAINS,
+  VALID_NETWORKS,
+} from "../../../configs/constants";
 
 const JoiPhone = Joi.extend(require("joi-phone-number"));
 
@@ -14,23 +19,19 @@ export const updateApp = {
   instantSettlement: Joi.boolean().valid(true, false),
 };
 
-const validNetworks = ["zksync-goerli", "altlayer-devnet", "metis-goerli"];
-const validAssets = ["alt", "kwt", "metis"];
-const validBlockchains = ["ethereum"];
-
 export const generateAddress = {
   symbol: Joi.string()
-    .valid(...validAssets)
+    .valid(...VALID_ASSETS)
     .insensitive()
     .lowercase()
     .required(),
   network: Joi.string()
-    .valid(...validNetworks)
+    .valid(...VALID_NETWORKS)
     .insensitive()
     .lowercase()
     .required(),
   blockchain: Joi.string()
-    .valid(...validBlockchains)
+    .valid(...VALID_BLOCKCHAINS)
     .insensitive()
     .lowercase()
     .required(),
@@ -57,18 +58,18 @@ export const sendCrypto = {
   to: Joi.string().required(),
   amount: Joi.number().required(),
   token: Joi.string()
-    .valid(...validAssets)
+    .valid(...VALID_ASSETS)
     .required(),
   network: Joi.string()
-    .valid(...validNetworks)
+    .valid(...VALID_NETWORKS)
     .required(),
   blockchain: Joi.string()
-    .valid(...validBlockchains)
+    .valid(...VALID_BLOCKCHAINS)
     .required(),
 };
 
 export const getAppBalance = {
   token: Joi.string()
-    .valid(...validAssets)
+    .valid(...VALID_ASSETS)
     .required(),
 };

@@ -1,15 +1,13 @@
 import Joi from "joi";
-
-const validNetworks = ["zksync-goerli", "altlayer-devnet", "metis-goerli"];
-const validAssets = ["alt", "kwt", "metis"];
+import { VALID_ASSETS, VALID_NETWORKS } from "../../../../configs/constants";
 
 export const l2Transfer = {
   to: Joi.string().required(),
   amount: Joi.number().required(),
   token: Joi.string()
-    .valid(...validAssets)
+    .valid(...VALID_ASSETS)
     .required(),
   network: Joi.string()
-    .valid(...validNetworks)
+    .valid(...VALID_NETWORKS)
     .required(),
 };
