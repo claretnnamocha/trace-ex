@@ -300,7 +300,7 @@ export const getAllUsers = async (
     if ("active" in params) where = { ...where, active };
     if ("isDeleted" in params) where = { ...where, isDeleted };
 
-    const data: Array<UserSchema> = await User.findAll({
+    const data: UserSchema[] = await User.findAll({
       where,
       order: [["createdAt", "DESC"]],
       limit: pageSize,

@@ -18,7 +18,7 @@ export const drainActiveWalletAddresses = async () => {
     callback: async () => {
       console.log("Draining sizeable wallets 🤓");
 
-      const wallets: Array<WalletSchema> = await Wallet.findAll({
+      const wallets: WalletSchema[] = await Wallet.findAll({
         where: { active: true },
       });
 

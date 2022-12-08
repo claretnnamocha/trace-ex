@@ -10,7 +10,7 @@ export interface SignUpRequest {
   country: string;
   preferredLanguage: string;
   role: string;
-  addresses: Array<Object>;
+  addresses: Object[];
   avatar: string;
 }
 
@@ -87,7 +87,7 @@ export interface GetAll {
   gender?: string;
   dob?: string;
   phone?: string;
-  permissions?: Array<string>;
+  permissions?: string[];
   role?: string;
   page?: number;
   pageSize?: number;

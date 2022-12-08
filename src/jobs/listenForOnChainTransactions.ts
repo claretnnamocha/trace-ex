@@ -18,7 +18,7 @@ export const listenForOnChainTransactions = async () => {
     callback: async () => {
       console.log("Listening for on-chain transactions 👂");
 
-      const wallets: Array<WalletSchema> = await Wallet.findAll({
+      const wallets: WalletSchema[] = await Wallet.findAll({
         where: { active: true },
       });
 

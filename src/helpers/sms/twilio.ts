@@ -15,7 +15,7 @@ export const send = async ({
 
     const details = { From: From || TWILIO_SENDER_ID, Body, To: phone };
 
-    let body: string | Array<string> = [];
+    let body: string | string[] = [];
     for (let index = 0; index < Object.keys(details).length; index += 1) {
       const key = Object.keys(details)[index];
       const property = details[key];

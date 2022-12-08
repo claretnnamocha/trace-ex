@@ -21,7 +21,7 @@ export const send = async ({ to, body: message }: sms.send) => {
       to: phone,
     };
 
-    let body: string | Array<string> = [];
+    let body: string | string[] = [];
     for (let index = 0; index < Object.keys(details).length; index += 1) {
       const key = Object.keys(details)[index];
       const property = details[key];
