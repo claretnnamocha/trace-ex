@@ -8,7 +8,7 @@ paths:
       parameters:
         - in: query
           name: symbol
-          enum: ["alt", "kwt", "metis"]
+          enum: ["alt", "kwt", "metis", "eth"]
           required: true
         - in: query
           name: network
