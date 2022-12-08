@@ -1,4 +1,5 @@
 import { Model } from "sequelize/types";
+import { Network } from "./Network";
 
 export interface SupportedToken {
   id?: string;
@@ -6,8 +7,7 @@ export interface SupportedToken {
   minimumDrainAmount?: number;
   contractAddress?: string;
   symbol?: string;
-  blockchain?: string;
-  network?: string;
+  network?: Network;
   name?: string;
   coinGeckoId?: string;
   isNativeToken?: boolean;
