@@ -313,8 +313,6 @@ export const RPC_LINK = ({
 }: {
   network?: NETWORKS;
 }): string => {
-  const { INFURA_API_KEY } = process.env;
-
   switch (network) {
     case "trust-testnet":
       return "https://api.testnet-dev.trust.one";
@@ -325,8 +323,7 @@ export const RPC_LINK = ({
     case "zksync-goerli":
       return "https://zksync2-testnet.zksync.dev";
     case "goerli":
-      if (!INFURA_API_KEY) throw new Error("Please provide INFURA_API_KEY");
-      return `https://${network}.infura.io/v3/${INFURA_API_KEY}`;
+      return "https://eth-goerli.public.blastapi.io";
     default:
       throw new Error("This network is not supported yet");
   }
