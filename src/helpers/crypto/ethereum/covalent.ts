@@ -1,4 +1,5 @@
-import { PROVIDER, NETWORKS } from "./ethers";
+import fetch from "node-fetch";
+import { NETWORKS, NormalizedTransaction, PROVIDER } from "./ethers";
 
 interface Transaction {
   block_signed_at: string;
@@ -18,6 +19,32 @@ interface Transaction {
   fees_paid: string;
   gas_quote: number;
   gas_quote_rate: number;
+  log_events: {
+    block_signed_at: string;
+    block_height: number;
+    tx_offset: number;
+    log_offset: number;
+    tx_hash: string;
+    raw_log_topics: string[];
+    sender_contract_decimals: number;
+    sender_name: string;
+    sender_contract_ticker_symbol: string;
+    sender_address: string;
+    sender_address_label: string;
+    sender_logo_url: string;
+    raw_log_data: string;
+    decoded: {
+      name: string;
+      signature: string;
+      params: {
+        name: string;
+        type: string;
+        indexed: boolean;
+        decoded: boolean;
+        value: string;
+      }[];
+    };
+  }[];
 }
 
 const BASE_URL = "https://api.covalenthq.com";
@@ -62,7 +89,7 @@ export const getAllTransactions = async ({
   const { chainId } = await provider.getNetwork();
   const url =
     `v1/${chainId}/address/${address}/transactions_v2` +
-    `/?no-logs=true&page-number${page}&page-size=${pageSize}`;
+    `/?page-number=${page}&page-size=${pageSize}`;
   const {
     data: { items: transactions },
   } = await request({ url });
@@ -80,4 +107,56 @@ export const getAllTransactions = async ({
       pageSize,
     })),
   ];
+};
+
+const getNativeTokenSymbol = (network: NETWORKS) => {
+  switch (network) {
+    case "goerli":
+      return "ETH";
+    default:
+      throw new Error("Network not supported");
+  }
+};
+
+export const normalizeTransaction = async (
+  transaction: Transaction,
+  address: string,
+  network: NETWORKS = "goerli"
+): Promise<NormalizedTransaction> => {
+  let reciever = transaction.to_address.toLowerCase();
+  let type = reciever === address.toLowerCase() ? "credit" : "debit";
+  let token = parseInt(transaction.value, 10)
+    ? getNativeTokenSymbol(network)
+    : "";
+  let amount = token ? transaction.value : "0";
+
+  // ERC20
+  if (!token) {
+    const {
+      log_events: [logEvent],
+    } = transaction;
+
+    token = logEvent.sender_contract_ticker_symbol;
+
+    const {
+      decoded: {
+        params: [, { value: to }, { value }],
+      },
+    } = logEvent;
+
+    amount = value;
+    reciever = to.toLowerCase();
+    type = reciever === address.toLowerCase() ? "credit" : "debit";
+  }
+
+  return {
+    transaction: {
+      ...transaction,
+      hash: transaction?.tx_hash,
+    },
+    type,
+    amount,
+    token,
+    confirmed: true,
+  };
 };

@@ -5,7 +5,12 @@ import sequelize, { Op } from "sequelize";
 import { v4 as uuid } from "uuid";
 import { SALT, WALLET_FACTORY_ADDRESS } from "../../../configs/constants";
 import { isTestnet, spenderPrivateKey } from "../../../configs/env";
-import { blockscout, ethers, zksync } from "../../../helpers/crypto/ethereum";
+import {
+  blockscout,
+  covalent,
+  ethers,
+  zksync,
+} from "../../../helpers/crypto/ethereum";
 import { NormalizedTransaction } from "../../../helpers/crypto/ethereum/ethers";
 import { sendEmail, sendWebhook } from "../../../jobs";
 import { App, SupportedToken, Transaction, Wallet } from "../../../models";
@@ -157,13 +162,18 @@ export const updateWalletBalance = async (
     let onChainBalance: number;
     const {
       address,
-      token: { network, isNativeToken, contractAddress },
+      token: {
+        network: { name: network },
+        isNativeToken,
+        contractAddress,
+      },
     } = wallet;
 
     switch (network) {
       case "zksync-goerli":
       case "altlayer-devnet":
       case "trust-testnet":
+      case "goerli":
       case "metis-goerli":
         if (isNativeToken) {
           onChainBalance = await ethers.getNativeTokenBalance({
@@ -237,6 +247,13 @@ export const logWalletTransactions = async (
     let normalizedTransaction: NormalizedTransaction;
 
     switch (network) {
+      case "goerli":
+        normalizedTransaction = await covalent.normalizeTransaction(
+          transaction,
+          address,
+          network
+        );
+        break;
       case "zksync-goerli":
         normalizedTransaction = await zksync.v2.normalizeTransaction(
           transaction,
@@ -259,6 +276,7 @@ export const logWalletTransactions = async (
           message: "This network is not supported yet",
         };
     }
+
     if (normalizedTransaction.type !== "credit")
       return { status: false, message: "Can't log non-credit transaction" };
 
@@ -376,12 +394,20 @@ export const updateWalletTransactions = async (
 
     for (let index = 0; index < wallets.length; index += 1) {
       const {
-        token: { network },
+        token: {
+          network: { name: network },
+        },
         id: walletId,
       } = wallets[index];
       let transactions: any;
 
       switch (network) {
+        case "goerli":
+          transactions = await covalent.getAllTransactions({
+            address,
+            network,
+          });
+          break;
         case "zksync-goerli":
           transactions = await zksync.v2.getAllTransactions({
             address,

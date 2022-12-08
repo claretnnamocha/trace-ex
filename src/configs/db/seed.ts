@@ -19,6 +19,16 @@ const supportedTokens = {
           minimumDrainAmount: 0.005,
           isTestnet: true,
         },
+        kwt: {
+          name: "Keeway Token",
+          coinGeckoId: "keeway-token",
+          isNativeToken: false,
+          isStableToken: false,
+          contractAddress: "0x37d40c08f9137280FE6cfa19182A7932A96f0fd0",
+          decimals: 18,
+          minimumDrainAmount: 1,
+          isTestnet: true,
+        },
       },
       parentNetwork: null,
       chainId: 5,
@@ -322,6 +332,5 @@ export const seed = async () => {
   await createDefaultExchangeUser(app);
   console.log("✅ Complete!\n");
 
-  // todo: plant other db seeds 😎
-  console.log("Database Seeded");
+  console.log("Database Seeded 🌱");
 };
