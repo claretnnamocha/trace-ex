@@ -1,11 +1,12 @@
 # Crypto Wallet Service
 
-| Supported Networks |
+## | Supported Networks |
+
 | ------------------ |
-| Goerli             |
-| BSC testnet        |
-| AltLayer Devnet    |
-| Metis Goerli       |
+| Goerli |
+| BSC testnet |
+| AltLayer Devnet |
+| Metis Goerli |
 
 ## Services
 
