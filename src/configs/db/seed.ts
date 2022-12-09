@@ -34,6 +34,7 @@ const supportedTokens = {
       chainId: 5,
       rpc: "https://eth-goerli.public.blastapi.io",
       explorer: "https://goerli.etherscan.io",
+      walletFactory: "0xBa81239FF1BA21A2Ff80203f932A856E27A78526",
     },
     "altlayer-devnet": {
       tokens: {
@@ -62,6 +63,7 @@ const supportedTokens = {
       chainId: 9990,
       rpc: "https://devnet-rpc.altlayer.io",
       explorer: "https://devnet-explorer.altlayer.io",
+      walletFactory: "0x1108a7F63A40c763B48192a02c52D8c6CE77939A",
     },
     "metis-goerli": {
       tokens: {
@@ -91,6 +93,36 @@ const supportedTokens = {
       chainId: 599,
       rpc: "https://goerli.gateway.metisdevops.link",
       explorer: "https://goerli.explorer.metisdevops.link",
+      walletFactory: "0x1108a7F63A40c763B48192a02c52D8c6CE77939A",
+    },
+    "bsc-testnet": {
+      tokens: {
+        bnb: {
+          name: "BNB",
+          coinGeckoId: "binancecoin",
+          isNativeToken: true,
+          isStableToken: false,
+          contractAddress: undefined,
+          decimals: 18,
+          minimumDrainAmount: 0.02,
+          isTestnet: true,
+        },
+        kwt: {
+          name: "Keeway Token",
+          coinGeckoId: "keeway-token",
+          isNativeToken: false,
+          isStableToken: false,
+          contractAddress: "0xBa81239FF1BA21A2Ff80203f932A856E27A78526",
+          decimals: 18,
+          minimumDrainAmount: 1,
+          isTestnet: true,
+        },
+      },
+      parentNetwork: null,
+      chainId: 97,
+      rpc: "https://data-seed-prebsc-1-s3.binance.org:8545",
+      explorer: "https://testnet.bscscan.com",
+      walletFactory: "0x1108a7F63A40c763B48192a02c52D8c6CE77939A",
     },
   },
 };
@@ -197,6 +229,7 @@ const createSupportedNetworks = async () => {
         chainId,
         rpc,
         explorer,
+        walletFactory,
       } = coins;
       let parentNetwork: any;
 
@@ -213,6 +246,7 @@ const createSupportedNetworks = async () => {
         parentNetwork,
         name: network,
         blockchain,
+        walletFactory,
       });
     }
   }
@@ -275,28 +309,6 @@ const createSupportedTokens = async () => {
 
 const createConfig = async () => {
   const { Config } = await import("../../models");
-
-  const ALTLAYER_WALLET_FACTORY_ADDRESS =
-    "0x1108a7F63A40c763B48192a02c52D8c6CE77939A";
-  const METIS_WALLET_FACTORY_ADDRESS =
-    "0x1108a7F63A40c763B48192a02c52D8c6CE77939A";
-  const GOERLI_WALLET_FACTORY_ADDRESS =
-    "0xBa81239FF1BA21A2Ff80203f932A856E27A78526";
-
-  await Config.bulkCreate([
-    {
-      key: "ALTLAYER_WALLET_FACTORY_ADDRESS",
-      value: ALTLAYER_WALLET_FACTORY_ADDRESS,
-    },
-    {
-      key: "METIS_WALLET_FACTORY_ADDRESS",
-      value: METIS_WALLET_FACTORY_ADDRESS,
-    },
-    {
-      key: "GOERLI_WALLET_FACTORY_ADDRESS",
-      value: GOERLI_WALLET_FACTORY_ADDRESS,
-    },
-  ]);
 
   await Config.create({ key: "env", value: JSON.stringify(process.env) });
 

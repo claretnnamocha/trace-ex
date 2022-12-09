@@ -6,7 +6,6 @@ import path from "path";
 import { Op } from "sequelize";
 import { v4 as uuid } from "uuid";
 import { displayName } from "../../../package.json";
-import { WALLET_FACTORY_ADDRESS } from "../../configs/constants";
 import { db } from "../../configs/db";
 import { spenderPrivateKey } from "../../configs/env";
 import { jwt, sms } from "../../helpers";
@@ -1130,8 +1129,10 @@ export const sendCrypto = async (
       switch (network) {
         case "trust-testnet":
         case "metis-goerli":
+        case "goerli":
+        case "bsc-testnet":
         case "altlayer-devnet": {
-          const contractAddress = await WALLET_FACTORY_ADDRESS(network);
+          const contractAddress = wallet.token.network.walletFactory;
           const walletFactory = ethers.getFactory({
             contractAddress,
             network,

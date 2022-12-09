@@ -33,6 +33,10 @@ const Network = db.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    walletFactory: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
     isDeleted: {
       type: DataTypes.BOOLEAN,
       defaultValue: true,

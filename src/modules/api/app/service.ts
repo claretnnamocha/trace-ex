@@ -1,5 +1,5 @@
 import { BigNumber } from "bignumber.js";
-import { SALT, WALLET_FACTORY_ADDRESS } from "../../../configs/constants";
+import { SALT } from "../../../configs/constants";
 import { db } from "../../../configs/db";
 import { spenderPrivateKey } from "../../../configs/env";
 import { currentPrices } from "../../../helpers/crypto/coingecko";
@@ -266,8 +266,9 @@ export const generateWallet = async (
         case "trust-testnet":
         case "altlayer-devnet":
         case "goerli":
+        case "bsc-testnet":
         case "metis-goerli": {
-          const contractAddress = await WALLET_FACTORY_ADDRESS(network);
+          const contractAddress = token.network.walletFactory;
 
           const walletFactory = ethers.getFactory({
             contractAddress,
@@ -669,8 +670,10 @@ export const sendCrypto = async (
       switch (network) {
         case "trust-testnet":
         case "metis-goerli":
+        case "goerli":
+        case "bsc-testnet":
         case "altlayer-devnet": {
-          const contractAddress = await WALLET_FACTORY_ADDRESS(network);
+          const contractAddress = token.network.walletFactory;
           const walletFactory = ethers.getFactory({
             contractAddress,
             network,

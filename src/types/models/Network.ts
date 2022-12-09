@@ -7,6 +7,7 @@ export interface Network {
   rpc?: string;
   name?: string;
   blockchain?: string;
+  walletFactory?: string;
   explorer?: string;
   isDeleted?: boolean;
   createdAt?: Date;

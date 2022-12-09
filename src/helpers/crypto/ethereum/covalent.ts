@@ -113,6 +113,8 @@ const getNativeTokenSymbol = (network: NETWORKS) => {
   switch (network) {
     case "goerli":
       return "ETH";
+    case "bsc-testnet":
+      return "BNB";
     default:
       throw new Error("Network not supported");
   }

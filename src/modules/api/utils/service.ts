@@ -3,7 +3,7 @@ import ejs from "ejs";
 import path from "path";
 import sequelize, { Op } from "sequelize";
 import { v4 as uuid } from "uuid";
-import { SALT, WALLET_FACTORY_ADDRESS } from "../../../configs/constants";
+import { SALT } from "../../../configs/constants";
 import { isTestnet, spenderPrivateKey } from "../../../configs/env";
 import {
   blockscout,
@@ -54,6 +54,8 @@ export const getBalance = async (
         case "altlayer-devnet":
         case "trust-testnet":
         case "metis-goerli":
+        case "goerli":
+        case "bsc-testnet":
           if (isNativeToken) {
             wei = await ethers.getNativeTokenBalance({ address, network });
           } else {
@@ -64,7 +66,6 @@ export const getBalance = async (
             });
           }
           break;
-
         default:
           return {
             status: false,
@@ -174,6 +175,7 @@ export const updateWalletBalance = async (
       case "altlayer-devnet":
       case "trust-testnet":
       case "goerli":
+      case "bsc-testnet":
       case "metis-goerli":
         if (isNativeToken) {
           onChainBalance = await ethers.getNativeTokenBalance({
@@ -248,6 +250,7 @@ export const logWalletTransactions = async (
 
     switch (network) {
       case "goerli":
+      case "bsc-testnet":
         normalizedTransaction = await covalent.normalizeTransaction(
           transaction,
           address,
@@ -403,6 +406,7 @@ export const updateWalletTransactions = async (
 
       switch (network) {
         case "goerli":
+        case "bsc-testnet":
           transactions = await covalent.getAllTransactions({
             address,
             network,
@@ -465,7 +469,11 @@ export const drainWalletOnChain = async (
       token: {
         minimumDrainAmount,
         decimals,
-        network: { name: network, blockchain },
+        network: {
+          name: network,
+          blockchain,
+          walletFactory: walletFactoryAddress,
+        },
         isNativeToken,
         contractAddress: tokenAddress,
       },
@@ -477,8 +485,10 @@ export const drainWalletOnChain = async (
       switch (network) {
         case "altlayer-devnet":
         case "metis-goerli":
+        case "goerli":
+        case "bsc-testnet":
         case "trust-testnet": {
-          const contractAddress = await WALLET_FACTORY_ADDRESS(network);
+          const contractAddress = walletFactoryAddress;
           const walletFactory = ethers.getFactory({
             contractAddress,
             network,
