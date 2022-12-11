@@ -1,7 +1,5 @@
 import { Op } from "sequelize";
-import { HD_PATH } from "../../../../configs/constants";
-import { mnemonic } from "../../../../configs/env";
-import { ethers, zksync } from "../../../../helpers/crypto/ethereum";
+import { zksync } from "../../../../helpers/crypto/ethereum";
 import { Wallet } from "../../../../models";
 import { WalletSchema } from "../../../../types/models";
 import { api, others } from "../../../../types/services";
@@ -15,7 +13,7 @@ export const deposit = async (
   params: api.app.SendCrypto
 ): Promise<others.Response> => {
   try {
-    const { amount, token: symbol, to, network, appId } = params;
+    const { amount, token: symbol, to, network, appId, privateKey } = params;
 
     const wallet: WalletSchema = await Wallet.findOne({
       where: {
@@ -34,17 +32,8 @@ export const deposit = async (
     }
 
     const {
-      index,
       token: { decimals, contractAddress },
     } = wallet;
-
-    const path = HD_PATH(index);
-    const { privateKey } = ethers.getWalletFromMnemonic({
-      mnemonic,
-      path,
-      // @ts-ignore
-      network,
-    });
 
     await zksync.v1.deposit({
       reciever: to,
@@ -78,7 +67,7 @@ export const withdraw = async (
   params: api.app.SendCrypto
 ): Promise<others.Response> => {
   try {
-    const { amount, token: symbol, to, network, appId } = params;
+    const { amount, token: symbol, to, network, appId, privateKey } = params;
 
     const wallet: WalletSchema = await Wallet.findOne({
       where: {
@@ -96,17 +85,8 @@ export const withdraw = async (
     }
 
     const {
-      index,
       token: { decimals, contractAddress },
     } = wallet;
-
-    const path = HD_PATH(index);
-    const { privateKey } = ethers.getWalletFromMnemonic({
-      mnemonic,
-      path,
-      // @ts-ignore
-      network,
-    });
 
     await zksync.v1.withdraw({
       recievers: [to],

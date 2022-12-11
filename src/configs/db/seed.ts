@@ -125,6 +125,27 @@ const supportedTokens = {
       walletFactory: "0x1108a7F63A40c763B48192a02c52D8c6CE77939A",
     },
   },
+  bitcoin: {
+    "bitcoin-testnet": {
+      tokens: {
+        btc: {
+          name: "Bitcoin",
+          coinGeckoId: "bitcoin",
+          isNativeToken: false,
+          isStableToken: false,
+          contractAddress: undefined,
+          decimals: 8,
+          minimumDrainAmount: 0.001,
+          isTestnet: true,
+        },
+      },
+      parentNetwork: null,
+      chainId: null,
+      rpc: null,
+      explorer: "https://blockstream.info/testnet",
+      walletFactory: null,
+    },
+  },
 };
 let counter = 1;
 

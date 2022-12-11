@@ -12,7 +12,7 @@ const schema = Joi.object({
   JWT_SECRET: Joi.string().required(),
   DB_URL: Joi.string().required().description("Database connection URL"),
   SPENDER_PRIVATE_KEY: Joi.string().required(),
-
+  MNEMONIC: Joi.string().required(),
   // ====================================
   // Optional
   // ====================================

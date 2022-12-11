@@ -71,7 +71,7 @@ paths:
         - in: query
           name: blockchain
           type: string
-          enum: ["ethereum"]
+          enum: ["ethereum", "bitcoin"]
           required: true
       responses:
         200:

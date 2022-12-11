@@ -108,5 +108,5 @@ definitions:
         required: true
       blockchain:
         type: string
-        enum: ["ethereum"]
+        enum: ["ethereum", "bitcoin"]
         required: true

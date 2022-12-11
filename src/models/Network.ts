@@ -11,15 +11,12 @@ const Network = db.define(
     },
     parentNetwork: {
       type: DataTypes.JSONB,
-      allowNull: true,
     },
     chainId: {
       type: DataTypes.INTEGER,
-      allowNull: false,
     },
     rpc: {
       type: DataTypes.STRING,
-      allowNull: false,
     },
     name: {
       type: DataTypes.STRING,
@@ -35,7 +32,6 @@ const Network = db.define(
     },
     walletFactory: {
       type: DataTypes.STRING,
-      allowNull: false,
     },
     isDeleted: {
       type: DataTypes.BOOLEAN,

@@ -5,6 +5,7 @@ import sequelize, { Op } from "sequelize";
 import { v4 as uuid } from "uuid";
 import { SALT } from "../../../configs/constants";
 import { isTestnet, spenderPrivateKey } from "../../../configs/env";
+import { blockstream } from "../../../helpers/crypto/bitcoin";
 import {
   blockscout,
   covalent,
@@ -47,7 +48,7 @@ export const getBalance = async (
     }
     const { decimals, contractAddress, isNativeToken } = token;
 
-    let wei: number;
+    let balance: number;
 
     if (blockchain === "ethereum") {
       switch (network) {
@@ -57,9 +58,9 @@ export const getBalance = async (
         case "goerli":
         case "bsc-testnet":
           if (isNativeToken) {
-            wei = await ethers.getNativeTokenBalance({ address, network });
+            balance = await ethers.getNativeTokenBalance({ address, network });
           } else {
-            wei = await ethers.getERC20TokenBalance({
+            balance = await ethers.getERC20TokenBalance({
               address,
               network,
               contractAddress,
@@ -72,9 +73,11 @@ export const getBalance = async (
             message: "This network is not supported yet",
           };
       }
+    } else if (blockchain === "bitcoin") {
+      balance = await blockstream.getBalance({ testnet: isTestnet, address });
     }
 
-    const amount = new BigNumber(wei).div(10 ** decimals).toFixed();
+    const amount = new BigNumber(balance).div(10 ** decimals).toFixed();
 
     return {
       status: true,

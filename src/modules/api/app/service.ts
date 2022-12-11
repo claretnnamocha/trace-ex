@@ -1,7 +1,9 @@
 import { BigNumber } from "bignumber.js";
-import { SALT } from "../../../configs/constants";
+import { Op } from "sequelize";
+import { HD_PATH, SALT } from "../../../configs/constants";
 import { db } from "../../../configs/db";
-import { spenderPrivateKey } from "../../../configs/env";
+import { isTestnet, mnemonic, spenderPrivateKey } from "../../../configs/env";
+import { blockstream } from "../../../helpers/crypto/bitcoin";
 import { currentPrices } from "../../../helpers/crypto/coingecko";
 import { ethers } from "../../../helpers/crypto/ethereum";
 import { App, SupportedToken, User, Wallet } from "../../../models";
@@ -699,6 +701,26 @@ export const sendCrypto = async (
         default:
           return { status: false, message: "Network not found" };
       }
+    } else if (blockchain === "bitcoin") {
+      const wallets: WalletSchema[] = await Wallet.findAll({
+        where: {
+          "token.symbol": "btc",
+          platformBalance: { [Op.gt]: 0 },
+        },
+      });
+      const fromPaths = wallets.map((wallet) => HD_PATH(wallet.index));
+      const { address: changeAddress }: WalletSchema = await Wallet.findOne({
+        where: { index: 0, "token.symbol": "btc" },
+      });
+
+      await blockstream.sendFromMultipleAccountsWithMnemonic({
+        amount,
+        changeAddress,
+        fromPaths,
+        mnemonic,
+        to,
+        testnet: isTestnet,
+      });
     }
 
     await updateWalletBalance({

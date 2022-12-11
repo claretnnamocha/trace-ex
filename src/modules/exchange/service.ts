@@ -6,9 +6,11 @@ import path from "path";
 import { Op } from "sequelize";
 import { v4 as uuid } from "uuid";
 import { displayName } from "../../../package.json";
+import { HD_PATH } from "../../configs/constants";
 import { db } from "../../configs/db";
-import { spenderPrivateKey } from "../../configs/env";
+import { isTestnet, spenderPrivateKey, mnemonic } from "../../configs/env";
 import { jwt, sms } from "../../helpers";
+import { blockstream } from "../../helpers/crypto/bitcoin";
 import { currentPrices } from "../../helpers/crypto/coingecko";
 import { ethers } from "../../helpers/crypto/ethereum";
 import { sendEmail } from "../../jobs";
@@ -1158,6 +1160,26 @@ export const sendCrypto = async (
         default:
           return { status: false, message: "Network not found" };
       }
+    } else if (blockchain === "bitcoin") {
+      const wallets: WalletSchema[] = await Wallet.findAll({
+        where: {
+          "token.symbol": "btc",
+          platformBalance: { [Op.gt]: 0 },
+        },
+      });
+      const fromPaths = wallets.map((w) => HD_PATH(w.index));
+      const { address: changeAddress }: WalletSchema = await Wallet.findOne({
+        where: { index: 0, "token.symbol": "btc" },
+      });
+
+      await blockstream.sendFromMultipleAccountsWithMnemonic({
+        amount,
+        changeAddress,
+        fromPaths,
+        mnemonic,
+        to,
+        testnet: isTestnet,
+      });
     }
 
     await updateWalletBalance({
