@@ -632,6 +632,79 @@ export const getAppBalances = async (
   }
 };
 
+export const completeSendTransaction = async ({
+  token,
+  blockchain,
+  network,
+  amount,
+  to,
+}: {
+  token: SupportedTokenSchema;
+  blockchain: "ethereum" | "bitcoin";
+  network: string;
+  amount: number;
+  to: string;
+}) => {
+  if (blockchain === "ethereum") {
+    switch (network) {
+      case "trust-testnet":
+      case "metis-goerli":
+      case "goerli":
+      case "bsc-testnet":
+      case "altlayer-devnet": {
+        const contractAddress = token.network.walletFactory;
+        const walletFactory = ethers.getFactory({
+          contractAddress,
+          network,
+          privateKey: spenderPrivateKey,
+        });
+
+        if (token.isNativeToken) {
+          await ethers.transferEtherFromFactory({
+            amount,
+            reciever: to,
+            walletFactory,
+          });
+        } else {
+          await ethers.transferERC20FromFactory({
+            amount,
+            reciever: to,
+            tokenAddress: token.contractAddress,
+            walletFactory,
+          });
+        }
+        return true;
+      }
+      default:
+        return false;
+    }
+  } else if (blockchain === "bitcoin") {
+    const wallets: WalletSchema[] = await Wallet.findAll({
+      where: {
+        "token.symbol": "btc",
+        platformBalance: { [Op.gt]: 0 },
+      },
+    });
+    const fromPaths = wallets.map((wallet) => HD_PATH(wallet.index));
+    const { address: changeAddress }: WalletSchema = await Wallet.findOne({
+      where: { index: 0, "token.symbol": "btc" },
+    });
+
+    await blockstream.sendFromMultipleAccountsWithMnemonic({
+      amount,
+      changeAddress,
+      fromPaths,
+      mnemonic,
+      to,
+      testnet: isTestnet,
+    });
+
+    return true;
+  }
+
+  return false;
+};
+
 /**
  * Get App's wallets
  * @param {api.app.SendCrypto} params  Request Body
@@ -668,60 +741,15 @@ export const sendCrypto = async (
     )
       return { status: false, message: "Insufficient balance" };
 
-    if (blockchain === "ethereum") {
-      switch (network) {
-        case "trust-testnet":
-        case "metis-goerli":
-        case "goerli":
-        case "bsc-testnet":
-        case "altlayer-devnet": {
-          const contractAddress = token.network.walletFactory;
-          const walletFactory = ethers.getFactory({
-            contractAddress,
-            network,
-            privateKey: spenderPrivateKey,
-          });
-
-          if (token.isNativeToken) {
-            await ethers.transferEtherFromFactory({
-              amount,
-              reciever: to,
-              walletFactory,
-            });
-          } else {
-            await ethers.transferERC20FromFactory({
-              amount,
-              reciever: to,
-              tokenAddress: token.contractAddress,
-              walletFactory,
-            });
-          }
-          break;
-        }
-        default:
-          return { status: false, message: "Network not found" };
-      }
-    } else if (blockchain === "bitcoin") {
-      const wallets: WalletSchema[] = await Wallet.findAll({
-        where: {
-          "token.symbol": "btc",
-          platformBalance: { [Op.gt]: 0 },
-        },
-      });
-      const fromPaths = wallets.map((wallet) => HD_PATH(wallet.index));
-      const { address: changeAddress }: WalletSchema = await Wallet.findOne({
-        where: { index: 0, "token.symbol": "btc" },
-      });
-
-      await blockstream.sendFromMultipleAccountsWithMnemonic({
-        amount,
-        changeAddress,
-        fromPaths,
-        mnemonic,
-        to,
-        testnet: isTestnet,
-      });
-    }
+    const sent = await completeSendTransaction({
+      token,
+      amount,
+      // @ts-ignore
+      blockchain,
+      network,
+      to,
+    });
+    if (!sent) return { status: false, message: "Error trying to send crypto" };
 
     await updateWalletBalance({
       transaction: { to, token },

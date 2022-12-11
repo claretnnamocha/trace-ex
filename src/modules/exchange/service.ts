@@ -6,13 +6,9 @@ import path from "path";
 import { Op } from "sequelize";
 import { v4 as uuid } from "uuid";
 import { displayName } from "../../../package.json";
-import { HD_PATH } from "../../configs/constants";
 import { db } from "../../configs/db";
-import { isTestnet, spenderPrivateKey, mnemonic } from "../../configs/env";
 import { jwt, sms } from "../../helpers";
-import { blockstream } from "../../helpers/crypto/bitcoin";
 import { currentPrices } from "../../helpers/crypto/coingecko";
-import { ethers } from "../../helpers/crypto/ethereum";
 import { sendEmail } from "../../jobs";
 import {
   App,
@@ -28,7 +24,7 @@ import {
   WalletSchema,
 } from "../../types/models";
 import { exchange, others } from "../../types/services";
-import { generateWallet } from "../api/app/service";
+import { completeSendTransaction, generateWallet } from "../api/app/service";
 import { updateWalletBalance } from "../api/utils/service";
 
 const { FRONTEND_BASEURL } = process.env;
@@ -1127,60 +1123,15 @@ export const sendCrypto = async (
       };
     }
 
-    if (blockchain === "ethereum") {
-      switch (network) {
-        case "trust-testnet":
-        case "metis-goerli":
-        case "goerli":
-        case "bsc-testnet":
-        case "altlayer-devnet": {
-          const contractAddress = wallet.token.network.walletFactory;
-          const walletFactory = ethers.getFactory({
-            contractAddress,
-            network,
-            privateKey: spenderPrivateKey,
-          });
-
-          if (wallet.token.isNativeToken) {
-            await ethers.transferEtherFromFactory({
-              amount,
-              reciever: to,
-              walletFactory,
-            });
-          } else {
-            await ethers.transferERC20FromFactory({
-              amount,
-              reciever: to,
-              tokenAddress: wallet.token.contractAddress,
-              walletFactory,
-            });
-          }
-          break;
-        }
-        default:
-          return { status: false, message: "Network not found" };
-      }
-    } else if (blockchain === "bitcoin") {
-      const wallets: WalletSchema[] = await Wallet.findAll({
-        where: {
-          "token.symbol": "btc",
-          platformBalance: { [Op.gt]: 0 },
-        },
-      });
-      const fromPaths = wallets.map((w) => HD_PATH(w.index));
-      const { address: changeAddress }: WalletSchema = await Wallet.findOne({
-        where: { index: 0, "token.symbol": "btc" },
-      });
-
-      await blockstream.sendFromMultipleAccountsWithMnemonic({
-        amount,
-        changeAddress,
-        fromPaths,
-        mnemonic,
-        to,
-        testnet: isTestnet,
-      });
-    }
+    const sent = await completeSendTransaction({
+      token: wallet.token as SupportedTokenSchema,
+      amount,
+      // @ts-ignore
+      blockchain,
+      network,
+      to,
+    });
+    if (!sent) return { status: false, message: "Error trying to send crypto" };
 
     await updateWalletBalance({
       transaction: { token: wallet.token, to },
