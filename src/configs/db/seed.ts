@@ -39,7 +39,7 @@ const supportedTokens = {
     "altlayer-devnet": {
       tokens: {
         alt: {
-          name: "Alt Coin",
+          name: "ALT",
           coinGeckoId: "altlayer-token",
           isNativeToken: true,
           isStableToken: false,
