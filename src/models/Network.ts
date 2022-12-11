@@ -35,7 +35,7 @@ const Network = db.define(
     },
     isDeleted: {
       type: DataTypes.BOOLEAN,
-      defaultValue: true,
+      defaultValue: false,
     },
   },
   {

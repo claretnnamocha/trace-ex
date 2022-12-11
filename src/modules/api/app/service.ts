@@ -3,7 +3,8 @@ import { Op } from "sequelize";
 import { HD_PATH, SALT } from "../../../configs/constants";
 import { db } from "../../../configs/db";
 import { isTestnet, mnemonic, spenderPrivateKey } from "../../../configs/env";
-import { blockstream } from "../../../helpers/crypto/bitcoin";
+import { bitcoinjs, blockstream } from "../../../helpers/crypto/bitcoin";
+import { NETWORK } from "../../../helpers/crypto/bitcoin/bitcoinjs-lib";
 import { currentPrices } from "../../../helpers/crypto/coingecko";
 import { ethers } from "../../../helpers/crypto/ethereum";
 import { App, SupportedToken, User, Wallet } from "../../../models";
@@ -290,6 +291,12 @@ export const generateWallet = async (
             message: "This blockchain is not supported yet",
           };
       }
+    } else if (blockchain === "bitcoin") {
+      address = bitcoinjs.generateAddressWithMnemonic({
+        mnemonic,
+        network: NETWORK({ testnet: isTestnet }),
+        path: HD_PATH(index),
+      }).address;
     }
 
     const app: AppSchema = await App.findByPk(appId);
