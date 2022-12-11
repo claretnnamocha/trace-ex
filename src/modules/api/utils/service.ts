@@ -260,6 +260,12 @@ export const logWalletTransactions = async (
           network
         );
         break;
+      case "bitcoin-testnet":
+        normalizedTransaction = blockstream.normalizeTransaction({
+          address,
+          transaction,
+        });
+        break;
       case "zksync-goerli":
         normalizedTransaction = await zksync.v2.normalizeTransaction(
           transaction,

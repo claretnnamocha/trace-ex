@@ -219,7 +219,7 @@ export const getSingleTransaction = async ({
   return request({ testnet, url: `tx/${txid}` });
 };
 
-export const normalizeTransactionObject = ({
+export const normalizeTransaction = ({
   transaction,
   address,
 }: {
