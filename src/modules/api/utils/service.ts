@@ -174,6 +174,12 @@ export const updateWalletBalance = async (
     } = wallet;
 
     switch (network) {
+      case "bitcoin-testnet":
+        onChainBalance = await blockstream.getBalance({
+          testnet: isTestnet,
+          address,
+        });
+        break;
       case "zksync-goerli":
       case "altlayer-devnet":
       case "trust-testnet":
@@ -419,6 +425,12 @@ export const updateWalletTransactions = async (
           transactions = await covalent.getAllTransactions({
             address,
             network,
+          });
+          break;
+        case "bitcoin-testnet":
+          transactions = await blockstream.getAllTransactions({
+            address,
+            testnet: isTestnet,
           });
           break;
         case "zksync-goerli":
