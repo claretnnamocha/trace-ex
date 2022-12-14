@@ -25,7 +25,7 @@ export const authenticate = async ({ clear = false }) => {
     }
     await Promise.all(modelSync);
 
-    if (clear) await seed(models);
+    if (clear) await seed();
 
     console.log("Database Migrated");
   } catch (error) {

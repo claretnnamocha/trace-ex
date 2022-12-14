@@ -15,7 +15,7 @@ const SupportedToken = db.define(
       allowNull: false,
     },
     minimumDrainAmount: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.REAL,
       allowNull: false,
     },
     contractAddress: {
@@ -29,12 +29,8 @@ const SupportedToken = db.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    blockchain: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
     network: {
-      type: DataTypes.STRING,
+      type: DataTypes.JSONB,
       allowNull: false,
     },
     coinGeckoId: {

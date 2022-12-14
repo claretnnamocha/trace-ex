@@ -29,7 +29,7 @@ export interface GetAll {
   gender?: string;
   dob?: string;
   phone?: string;
-  permissions?: Array<string>;
+  permissions?: string[];
   role?: string;
   page?: number;
   pageSize?: number;

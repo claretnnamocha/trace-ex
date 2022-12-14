@@ -1,19 +1,20 @@
 import Joi from "joi";
-
-const validL2Networks = ["altlayer-devnet"];
-const validAssets = ["alt", "kwt", "metis"];
-const validBlockchains = ["ethereum"];
+import {
+  VALID_ASSETS,
+  VALID_BLOCKCHAINS,
+  VALID_NETWORKS,
+} from "../../../configs/constants";
 
 export const getTokenBalance = {
   network: Joi.string()
-    .valid(...validL2Networks)
+    .valid(...VALID_NETWORKS)
     .required(),
   token: Joi.string()
-    .valid(...validAssets)
+    .valid(...VALID_ASSETS)
     .required(),
   address: Joi.string().trim().required(),
   blockchain: Joi.string()
-    .valid(...validBlockchains)
+    .valid(...VALID_BLOCKCHAINS)
     .insensitive()
     .lowercase()
     .required(),

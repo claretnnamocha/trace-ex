@@ -1,11 +1,12 @@
 import Joi from "joi";
 import passwordComplexity from "joi-password-complexity";
+import {
+  VALID_ASSETS,
+  VALID_BLOCKCHAINS,
+  VALID_NETWORKS,
+} from "../../configs/constants";
 
 const JoiPhone = Joi.extend(require("joi-phone-number"));
-
-const validAssets = ["alt", "kwt", "metis"];
-const validNetworks = ["zksync-goerli", "altlayer-devnet", "metis-goerli"];
-const validBlockchains = ["ethereum"];
 
 export const signIn = {
   user: Joi.string().required(),
@@ -78,19 +79,18 @@ export const getAllUsers = {
 
 export const getWallet = {
   token: Joi.string()
-    .valid(...validAssets)
+    .valid(...VALID_ASSETS)
     .required(),
   network: Joi.string()
-    .valid(...validNetworks)
+    .valid(...VALID_NETWORKS)
     .insensitive()
-    .lowercase()
-    .required(),
+    .lowercase(),
 };
 
 export const transactions = {
-  token: Joi.string().valid(...validAssets),
+  token: Joi.string().valid(...VALID_ASSETS),
   network: Joi.string()
-    .valid(...validNetworks)
+    .valid(...VALID_NETWORKS)
     .insensitive()
     .lowercase(),
 };
@@ -99,12 +99,12 @@ export const sendL2 = {
   to: Joi.string().required(),
   amount: Joi.number().required(),
   token: Joi.string()
-    .valid(...validAssets)
+    .valid(...VALID_ASSETS)
     .required(),
   network: Joi.string()
-    .valid(...validNetworks)
+    .valid(...VALID_NETWORKS)
     .required(),
   blockchain: Joi.string()
-    .valid(...validBlockchains)
+    .valid(...VALID_BLOCKCHAINS)
     .required(),
 };

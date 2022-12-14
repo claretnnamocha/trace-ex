@@ -1,5 +1,5 @@
 export interface send {
-  to: string | Array<string>;
+  to: string | string[];
   body: string;
   from?: string;
 }

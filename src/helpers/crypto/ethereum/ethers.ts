@@ -297,7 +297,9 @@ export type NETWORKS =
   | "goerli"
   | "metis-goerli"
   | "zksync-goerli"
-  | "zksync-mainnet";
+  | "zksync-mainnet"
+  | "trust-testnet"
+  | "bsc-testnet";
 
 export interface NormalizedTransaction {
   amount: string;
@@ -312,9 +314,9 @@ export const RPC_LINK = ({
 }: {
   network?: NETWORKS;
 }): string => {
-  const { INFURA_API_KEY } = process.env;
-
   switch (network) {
+    case "trust-testnet":
+      return "https://api.testnet-dev.trust.one";
     case "metis-goerli":
       return "https://goerli.gateway.metisdevops.link";
     case "altlayer-devnet":
@@ -322,8 +324,9 @@ export const RPC_LINK = ({
     case "zksync-goerli":
       return "https://zksync2-testnet.zksync.dev";
     case "goerli":
-      if (!INFURA_API_KEY) throw new Error("Please provide INFURA_API_KEY");
-      return `https://${network}.infura.io/v3/${INFURA_API_KEY}`;
+      return "https://eth-goerli.public.blastapi.io";
+    case "bsc-testnet":
+      return "https://data-seed-prebsc-1-s3.binance.org:8545";
     default:
       throw new Error("This network is not supported yet");
   }
@@ -331,12 +334,16 @@ export const RPC_LINK = ({
 
 const RPC_LINK2 = ({ chainId = 9990 }: { chainId?: number }): string => {
   switch (chainId) {
+    case 15555:
+      return RPC_LINK({ network: "trust-testnet" });
     case 599:
       return RPC_LINK({ network: "metis-goerli" });
     case 9990:
       return RPC_LINK({ network: "altlayer-devnet" });
     case 5:
       return RPC_LINK({ network: "goerli" });
+    case 97:
+      return RPC_LINK({ network: "bsc-testnet" });
     case 280:
       return RPC_LINK({ network: "zksync-goerli" });
     default:

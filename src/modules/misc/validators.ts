@@ -1,7 +1,6 @@
 import Joi from "joi";
-
-const validAssets = ["alt", "kwt", "metis"];
+import { VALID_ASSETS } from "../../configs/constants";
 
 export const networks = {
-  token: Joi.string().valid(...validAssets),
+  token: Joi.string().valid(...VALID_ASSETS),
 };

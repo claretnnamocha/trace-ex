@@ -99,7 +99,7 @@ definitions:
         required: true
       token:
         type: string
-        enum: ["alt", "kwt", "metis"]
+        enum: ["alt", "kwt", "metis", "eth"]
         required: true
       network:
         type: string
@@ -108,5 +108,5 @@ definitions:
         required: true
       blockchain:
         type: string
-        enum: ["ethereum"]
+        enum: ["ethereum", "bitcoin"]
         required: true

@@ -75,13 +75,15 @@ const App = db.define(
         const { id: appId }: AppSchema = attributes;
         await attributes.update(generateDevelopmentKeys(appId));
 
-        const tokens: Array<SupportedTokenSchema> =
-          await SupportedToken.findAll({
-            where: { verified: true },
-          });
+        const tokens: SupportedTokenSchema[] = await SupportedToken.findAll({
+          where: { verified: true },
+        });
 
         for (let index = 0; index < tokens.length; index += 1) {
-          const { blockchain, network, symbol } = tokens[index];
+          const {
+            network: { name: network, blockchain },
+            symbol,
+          } = tokens[index];
 
           await generateWallet({
             appId,
@@ -99,13 +101,15 @@ const App = db.define(
 
           await instance.update(generateDevelopmentKeys(appId));
 
-          const tokens: Array<SupportedTokenSchema> =
-            await SupportedToken.findAll({
-              where: { verified: true },
-            });
+          const tokens: SupportedTokenSchema[] = await SupportedToken.findAll({
+            where: { verified: true },
+          });
 
           for (let index2 = 0; index2 < tokens.length; index2 += 1) {
-            const { blockchain, network, symbol } = tokens[index2];
+            const {
+              network: { name: network, blockchain },
+              symbol,
+            } = tokens[index2];
             /* eslint-disable no-await-in-loop */
             await generateWallet({
               appId,

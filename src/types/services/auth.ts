@@ -9,7 +9,7 @@ export interface SignUpRequest {
   country: string;
   preferredLanguage: string;
   role: string;
-  addresses: Array<Object>;
+  addresses: Object[];
   avatar: string;
 }
 

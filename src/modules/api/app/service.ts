@@ -1,7 +1,11 @@
 import { BigNumber } from "bignumber.js";
-import { SALT, WALLET_FACTORY_ADDRESS } from "../../../configs/constants";
+import { Op } from "sequelize";
+import { HD_PATH, SALT } from "../../../configs/constants";
 import { db } from "../../../configs/db";
-import { spenderPrivateKey } from "../../../configs/env";
+import { isTestnet, mnemonic, spenderPrivateKey } from "../../../configs/env";
+import { bitcoinjs, blockstream } from "../../../helpers/crypto/bitcoin";
+import { NETWORK } from "../../../helpers/crypto/bitcoin/bitcoinjs-lib";
+import { currentPrices } from "../../../helpers/crypto/coingecko";
 import { ethers } from "../../../helpers/crypto/ethereum";
 import { App, SupportedToken, User, Wallet } from "../../../models";
 import { AppSchema, UserSchema, WalletSchema } from "../../../types/models";
@@ -238,7 +242,11 @@ export const generateWallet = async (
     let { index } = params;
 
     const token: SupportedTokenSchema = await SupportedToken.findOne({
-      where: { network, blockchain, symbol },
+      where: {
+        "network.name": network,
+        "network.blockchain": blockchain,
+        symbol,
+      },
     });
 
     if (!token) return { status: false, message: "Token not found" };
@@ -258,9 +266,12 @@ export const generateWallet = async (
 
     if (blockchain === "ethereum") {
       switch (network) {
+        case "trust-testnet":
         case "altlayer-devnet":
+        case "goerli":
+        case "bsc-testnet":
         case "metis-goerli": {
-          const contractAddress = await WALLET_FACTORY_ADDRESS(network);
+          const contractAddress = token.network.walletFactory;
 
           const walletFactory = ethers.getFactory({
             contractAddress,
@@ -280,6 +291,12 @@ export const generateWallet = async (
             message: "This blockchain is not supported yet",
           };
       }
+    } else if (blockchain === "bitcoin") {
+      address = bitcoinjs.generateAddressWithMnemonic({
+        mnemonic,
+        network: NETWORK({ testnet: isTestnet }),
+        path: HD_PATH(index),
+      }).address;
     }
 
     const app: AppSchema = await App.findByPk(appId);
@@ -345,10 +362,7 @@ export const getWallet = async (
 
     const query = `
     SELECT  *
-       ,(CAST(wallet."platformBalance" AS DECIMAL) / pow(10,CAST(token ->> 'decimals' AS INTEGER))) AS "platformBalance"
-       ,(CAST(wallet."onChainBalance" AS DECIMAL) / pow(10,CAST(token ->> 'decimals' AS INTEGER)))  AS "onChainBalance"
-       ,(CAST(wallet."totalRecieved" AS DECIMAL) / pow(10,CAST(token ->> 'decimals' AS INTEGER)))   AS "totalRecieved"
-       ,(CAST(wallet."totalSpent" AS DECIMAL) / pow(10,CAST(token ->> 'decimals' AS INTEGER)))      AS "totalSpent"
+       ,(CAST(wallet."balance" AS DECIMAL) / pow(10,CAST(token ->> 'decimals' AS INTEGER))) AS "balance"
     FROM wallet
     WHERE app ->> 'id' = :appId
     AND id = :reference
@@ -401,16 +415,16 @@ export const getAppDefaultWallets = async (
     ORDER BY "token" ->> 'name', "index"
     `;
 
-    const [wallets] = await db.query(query, { replacements: { appId } });
-    const data = [];
+    const [data] = await db.query(query, { replacements: { appId } });
+    // const data = [];
 
-    for (let index = 0; index < wallets.length; index += 1) {
-      const { id: reference }: any = wallets[index];
-      /* eslint-disable no-await-in-loop */
-      const { data: wallet }: any = await getWallet({ reference, appId });
+    // for (let index = 0; index < wallets.length; index += 1) {
+    //   const { id: reference }: any = wallets[index];
+    //   /* eslint-disable no-await-in-loop */
+    //   const { data: wallet }: any = await getWallet({ reference, appId });
 
-      data.push(wallet);
-    }
+    //   data.push(wallet);
+    // }
     return {
       status: true,
       message: "App default wallets",
@@ -440,23 +454,46 @@ export const getAppWallets = async (
     const { appId, page, pageSize } = params;
     const where = { "app.id": appId, isDeleted: false };
 
-    const wallets = await Wallet.findAll({
-      where,
-      limit: pageSize,
-      offset: pageSize * (page - 1),
-    });
-
     const total: number = await Wallet.count({ where });
 
-    const data = [];
+    const query = `
+        SELECT
+          "token" ->> 'symbol' AS "symbol",
+          "token" ->> 'coinGeckoId' AS "coinGeckoId",
+          SUM(CAST(wallet. "platformBalance" AS DECIMAL) / pow(10, CAST(token ->> 'decimals' AS INTEGER))) AS "balance"
+        FROM
+          wallet
+        WHERE
+          "app" ->> 'id' = :appId
+          AND "isDeleted" = false
+        GROUP BY
+          "token" ->> 'coinGeckoId',
+          "token" ->> 'symbol'
+        LIMIT :limit
+        OFFSET :offset
+    `;
+
+    const [wallets]: any = await db.query(query, {
+      replacements: { appId, limit: pageSize, offset: pageSize * (page - 1) },
+    });
+
+    const usdPrices = await currentPrices({
+      tokens: wallets.map(({ coinGeckoId }) => coinGeckoId),
+    });
+
+    let totalUsdValue = 0;
 
     for (let index = 0; index < wallets.length; index += 1) {
-      const { id: reference }: any = wallets[index];
-      /* eslint-disable no-await-in-loop */
-      const { data: wallet }: any = await getWallet({ reference, appId });
+      const usdValue = parseFloat(
+        (usdPrices[index] * wallets[index].balance).toFixed(2)
+      );
+      wallets[index].usdValue = usdValue;
 
-      data.push(wallet);
+      totalUsdValue += usdValue;
     }
+
+    const data = { wallets, totalUsdValue };
+
     return {
       status: true,
       message: "App wallets",
@@ -602,6 +639,79 @@ export const getAppBalances = async (
   }
 };
 
+export const completeSendTransaction = async ({
+  token,
+  blockchain,
+  network,
+  amount,
+  to,
+}: {
+  token: SupportedTokenSchema;
+  blockchain: "ethereum" | "bitcoin";
+  network: string;
+  amount: number;
+  to: string;
+}) => {
+  if (blockchain === "ethereum") {
+    switch (network) {
+      case "trust-testnet":
+      case "metis-goerli":
+      case "goerli":
+      case "bsc-testnet":
+      case "altlayer-devnet": {
+        const contractAddress = token.network.walletFactory;
+        const walletFactory = ethers.getFactory({
+          contractAddress,
+          network,
+          privateKey: spenderPrivateKey,
+        });
+
+        if (token.isNativeToken) {
+          await ethers.transferEtherFromFactory({
+            amount,
+            reciever: to,
+            walletFactory,
+          });
+        } else {
+          await ethers.transferERC20FromFactory({
+            amount,
+            reciever: to,
+            tokenAddress: token.contractAddress,
+            walletFactory,
+          });
+        }
+        return true;
+      }
+      default:
+        return false;
+    }
+  } else if (blockchain === "bitcoin") {
+    const wallets: WalletSchema[] = await Wallet.findAll({
+      where: {
+        "token.symbol": "btc",
+        platformBalance: { [Op.gt]: 0 },
+      },
+    });
+    const fromPaths = wallets.map((wallet) => HD_PATH(wallet.index));
+    const { address: changeAddress }: WalletSchema = await Wallet.findOne({
+      where: { index: 0, "token.symbol": "btc" },
+    });
+
+    await blockstream.sendFromMultipleAccountsWithMnemonic({
+      amount,
+      changeAddress,
+      fromPaths,
+      mnemonic,
+      to,
+      testnet: isTestnet,
+    });
+
+    return true;
+  }
+
+  return false;
+};
+
 /**
  * Get App's wallets
  * @param {api.app.SendCrypto} params  Request Body
@@ -614,7 +724,7 @@ export const sendCrypto = async (
     const { amount, network, token: symbol, to, blockchain, appId } = params;
 
     const token: SupportedTokenSchema = await SupportedToken.findOne({
-      where: { symbol, network, blockchain },
+      where: { symbol, "network.name": network, blockchain },
     });
 
     if (!token)
@@ -638,36 +748,15 @@ export const sendCrypto = async (
     )
       return { status: false, message: "Insufficient balance" };
 
-    if (blockchain === "ethereum") {
-      switch (network) {
-        case "altlayer-devnet": {
-          const contractAddress = await WALLET_FACTORY_ADDRESS(network);
-          const walletFactory = ethers.getFactory({
-            contractAddress,
-            network,
-            privateKey: spenderPrivateKey,
-          });
-
-          if (token.isNativeToken) {
-            await ethers.transferEtherFromFactory({
-              amount,
-              reciever: to,
-              walletFactory,
-            });
-          } else {
-            await ethers.transferERC20FromFactory({
-              amount,
-              reciever: to,
-              tokenAddress: token.contractAddress,
-              walletFactory,
-            });
-          }
-          break;
-        }
-        default:
-          return { status: false, message: "Network not found" };
-      }
-    }
+    const sent = await completeSendTransaction({
+      token,
+      amount,
+      // @ts-ignore
+      blockchain,
+      network,
+      to,
+    });
+    if (!sent) return { status: false, message: "Error trying to send crypto" };
 
     await updateWalletBalance({
       transaction: { to, token },

@@ -38,7 +38,7 @@ paths:
         - in: query
           name: token
           type: string
-          enum: ["alt", "kwt", "metis"]
+          enum: ["alt", "kwt", "metis", "eth"]
       responses:
         200:
           description: Success
@@ -61,7 +61,7 @@ paths:
         - in: query
           name: token
           type: string
-          enum: ["alt", "kwt", "metis"]
+          enum: ["alt", "kwt", "metis", "eth"]
           required: true
         - in: query
           name: network
@@ -71,7 +71,7 @@ paths:
         - in: query
           name: blockchain
           type: string
-          enum: ["ethereum"]
+          enum: ["ethereum", "bitcoin"]
           required: true
       responses:
         200:

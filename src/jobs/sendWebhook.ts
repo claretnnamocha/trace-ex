@@ -2,12 +2,15 @@ import { Job, JobAttributesData } from "agenda";
 import crypto from "crypto";
 import fetch from "node-fetch";
 import { v4 as uuid } from "uuid";
+import { enableWebhooks } from "../configs/env";
 import { jobs } from "../helpers";
 import { App } from "../models";
 import { AppSchema } from "../types/models";
 import { WebhookQueue } from "./queues";
 
 export const sendWebhook = async ({ appId, body }) => {
+  if (!enableWebhooks) return;
+
   const queueName = `sendWebhook-${uuid()}`;
   const queue = WebhookQueue;
 

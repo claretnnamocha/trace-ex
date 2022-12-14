@@ -1,4 +1,4 @@
 export interface auth {
   isAdmin?: boolean;
-  roles?: Array<string>;
+  roles?: string[];
 }

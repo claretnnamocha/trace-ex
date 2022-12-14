@@ -380,12 +380,11 @@ paths:
       parameters:
         - in: query
           name: token
-          enum: ["alt", "kwt", "metis"]
+          enum: ["alt", "kwt", "metis", "eth"]
           required: true
         - in: query
           name: network
           enum: ["zksync-goerli", "altlayer-devnet", "metis-goerli"]
-          required: true
       responses:
         200:
           description: Success
@@ -406,7 +405,7 @@ paths:
       parameters:
         - in: query
           name: token
-          enum: ["alt", "kwt", "metis"]
+          enum: ["alt", "kwt", "metis", "eth"]
         - in: query
           name: network
           enum: ["zksync-goerli", "altlayer-devnet", "metis-goerli"]

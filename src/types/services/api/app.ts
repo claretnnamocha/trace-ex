@@ -47,5 +47,6 @@ export interface SendCrypto {
   to: string;
   amount: number;
   network: string;
+  privateKey?: string;
   blockchain: string;
 }

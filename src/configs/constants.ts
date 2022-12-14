@@ -1,8 +1,6 @@
 import crypto from "crypto";
-import { Config } from "../models";
-import { ConfigSchema } from "../types/models";
 
-export const HD_PATH = (index: number) => `m/49'/1'/0'/0/${index}'`;
+export const HD_PATH = (index: number) => `m/49'/1'/90'/87/${index}'`;
 
 export const SALT = ({ secretKey, walletIndex }) =>
   `0x${crypto
@@ -10,17 +8,12 @@ export const SALT = ({ secretKey, walletIndex }) =>
     .update(walletIndex.toFixed())
     .digest("hex")}`;
 
-export const WALLET_FACTORY_ADDRESS = async (
-  network: string = "altlayer-devnet"
-) => {
-  const key =
-    network === "altlayer-devnet"
-      ? "ALTLAYER_WALLET_FACTORY_ADDRESS"
-      : "METIS_WALLET_FACTORY_ADDRESS";
-
-  const config: ConfigSchema = await Config.findOne({
-    where: { key },
-  });
-
-  return config?.value;
-};
+export const VALID_NETWORKS = [
+  "zksync-goerli",
+  "altlayer-devnet",
+  "metis-goerli",
+  "goerli",
+  "bitcoin-testnet",
+];
+export const VALID_ASSETS = ["alt", "kwt", "metis", "eth", "btc"];
+export const VALID_BLOCKCHAINS = ["ethereum", "bitcoin"];

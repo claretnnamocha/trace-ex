@@ -12,7 +12,7 @@ const schema = Joi.object({
   JWT_SECRET: Joi.string().required(),
   DB_URL: Joi.string().required().description("Database connection URL"),
   SPENDER_PRIVATE_KEY: Joi.string().required(),
-
+  MNEMONIC: Joi.string().required(),
   // ====================================
   // Optional
   // ====================================
@@ -22,13 +22,10 @@ const schema = Joi.object({
   DEBUG: Joi.boolean().default(false),
   IS_TESTNET: Joi.boolean().default(true),
   CLEAR_DB: Joi.boolean().default(false),
-  ALLOW_ALL_JOBS: Joi.boolean().default(true),
-  ALLOW_WEBHOOK_JOBS: Joi.boolean().default(true),
-  ALLOW_EMAIL_JOBS: Joi.boolean().default(true),
-  ALLOW_SCAN_ADDRESS_JOBS: Joi.boolean().default(true),
-  ALLOW_DRAIN_ADDRESS_JOBS: Joi.boolean().default(true),
-  ALLOW_SCAN_TRANSACTION_JOBS: Joi.boolean().default(true),
-  ALLOW_SEND_CRYPTO_JOBS: Joi.boolean().default(true),
+  ENABLE_WEBHOOKS: Joi.boolean().default(true),
+  ENABLE_WALLET_DRAIN: Joi.boolean().default(true),
+  ENABLE_WALLET_SCAN: Joi.boolean().default(true),
+  ENABLE_MAILING: Joi.boolean().default(true),
 })
   .unknown()
   .required();
@@ -55,16 +52,12 @@ export const drainCronOption: JobOptions = {
 };
 export const scanOption: JobOptions = { attempts: 10, backoff: 30 * 1000 };
 
-export const allowAllJobs: boolean = value.ALLOW_ALL_JOBS;
-export const allowWebhookJobs: boolean = value.ALLOW_WEBHOOK_JOBS;
-export const allowEmailJobs: boolean = value.ALLOW_EMAIL_JOBS;
-export const allowScanAddressJobs: boolean = value.ALLOW_SCAN_ADDRESS_JOBS;
-export const allowDrainAddressJobs: boolean = value.ALLOW_DRAIN_ADDRESS_JOBS;
-export const allowScanTransactionJobs: boolean =
-  value.ALLOW_SCAN_TRANSACTION_JOBS;
-export const allowSendCryptoJobs: boolean = value.ALLOW_SEND_CRYPTO_JOBS;
-
 export const totpWindow: number = value.TOTP_WINDOW;
 
 export const mnemonic: string = value.MNEMONIC;
 export const spenderPrivateKey: string = value.SPENDER_PRIVATE_KEY;
+
+export const enableWebhooks: boolean = value.ENABLE_WEBHOOKS;
+export const enableWalletDrain: boolean = value.ENABLE_WALLET_DRAIN;
+export const enableWalletScan: boolean = value.ENABLE_WALLET_SCAN;
+export const enableMailing: boolean = value.ENABLE_MAILING;

@@ -1,4 +1,6 @@
+import { db } from "../../configs/db";
 import { SupportedToken } from "../../models";
+import { SupportedTokenSchema } from "../../types/models";
 import { others } from "../../types/services";
 
 /**
@@ -16,18 +18,16 @@ export const ping = (): others.Response => ({
  */
 export const supportedTokens = async (): Promise<others.Response> => {
   try {
-    const data = await SupportedToken.findAll({});
+    const query = `
+        SELECT DISTINCT
+          symbol,
+          "name"
+        FROM
+          "supportedToken"
+    `;
 
-    //     const query = `
-    //     SELECT DISTINCT
-    //       symbol,
-    //       "name"
-    //     FROM
-    //       "supportedToken"
-    // `;
-
-    //   const [data] = await db.query(query, {});
-    return { status: true, data, message: "Tokens" };
+    const [data] = await db.query(query, {});
+    return { status: true, message: "Tokens", data };
   } catch (error) {
     return {
       payload: {
@@ -54,11 +54,13 @@ export const supportedNetworks = async ({
 
     if (symbol) where = { symbol, ...where };
 
-    const data = await SupportedToken.findAll({
+    const tokens: SupportedTokenSchema[] = await SupportedToken.findAll({
       where,
       attributes: ["network"],
       group: ["network"],
     });
+
+    const data = tokens.map(({ network }) => network);
 
     return { status: true, data, message: "Networks" };
   } catch (error) {

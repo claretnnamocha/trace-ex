@@ -3,9 +3,15 @@ import ejs from "ejs";
 import path from "path";
 import sequelize, { Op } from "sequelize";
 import { v4 as uuid } from "uuid";
-import { SALT, WALLET_FACTORY_ADDRESS } from "../../../configs/constants";
+import { SALT } from "../../../configs/constants";
 import { isTestnet, spenderPrivateKey } from "../../../configs/env";
-import { blockscout, ethers, zksync } from "../../../helpers/crypto/ethereum";
+import { blockstream } from "../../../helpers/crypto/bitcoin";
+import {
+  blockscout,
+  covalent,
+  ethers,
+  zksync,
+} from "../../../helpers/crypto/ethereum";
 import { NormalizedTransaction } from "../../../helpers/crypto/ethereum/ethers";
 import { sendEmail, sendWebhook } from "../../../jobs";
 import { App, SupportedToken, Transaction, Wallet } from "../../../models";
@@ -20,7 +26,7 @@ import { api, others } from "../../../types/services";
 const { FRONTEND_BASEURL } = process.env;
 
 /**
- * Get L2 balance
+ * Get balance
  * @param {api.utils.GetTokenBalance} params  Request Body
  * @returns {others.Response} Contains status, message and data if any of the operation
  */
@@ -31,7 +37,7 @@ export const getBalance = async (
     const { network, address, token: symbol, blockchain } = params;
 
     const token: SupportedTokenSchema = await SupportedToken.findOne({
-      where: { symbol, network },
+      where: { symbol, "network.name": network },
     });
 
     if (!token) {
@@ -42,31 +48,36 @@ export const getBalance = async (
     }
     const { decimals, contractAddress, isNativeToken } = token;
 
-    let wei: number;
+    let balance: number;
 
     if (blockchain === "ethereum") {
       switch (network) {
         case "altlayer-devnet":
+        case "trust-testnet":
+        case "metis-goerli":
+        case "goerli":
+        case "bsc-testnet":
           if (isNativeToken) {
-            wei = await ethers.getNativeTokenBalance({ address, network });
+            balance = await ethers.getNativeTokenBalance({ address, network });
           } else {
-            wei = await ethers.getERC20TokenBalance({
+            balance = await ethers.getERC20TokenBalance({
               address,
               network,
               contractAddress,
             });
           }
           break;
-
         default:
           return {
             status: false,
             message: "This network is not supported yet",
           };
       }
+    } else if (blockchain === "bitcoin") {
+      balance = await blockstream.getBalance({ testnet: isTestnet, address });
     }
 
-    const amount = new BigNumber(wei).div(10 ** decimals).toFixed();
+    const amount = new BigNumber(balance).div(10 ** decimals).toFixed();
 
     return {
       status: true,
@@ -118,7 +129,7 @@ export const updateWalletBalance = async (
       confirmed,
     });
 
-    let [{ amount: totalRecieved }]: Array<TransactionSchema> =
+    let [{ amount: totalRecieved }]: TransactionSchema[] =
       await Transaction.findAll({
         where: { type: "credit", "wallet.id": walletId, shouldAggregate: true },
         attributes: [
@@ -133,7 +144,7 @@ export const updateWalletBalance = async (
       });
     totalRecieved = new BigNumber(totalRecieved || 0).toFixed();
 
-    let [{ amount: totalSpent }]: Array<TransactionSchema> =
+    let [{ amount: totalSpent }]: TransactionSchema[] =
       await Transaction.findAll({
         where: { type: "debit", "wallet.id": walletId, shouldAggregate: true },
         attributes: [
@@ -155,12 +166,25 @@ export const updateWalletBalance = async (
     let onChainBalance: number;
     const {
       address,
-      token: { network, isNativeToken, contractAddress },
+      token: {
+        network: { name: network },
+        isNativeToken,
+        contractAddress,
+      },
     } = wallet;
 
     switch (network) {
+      case "bitcoin-testnet":
+        onChainBalance = await blockstream.getBalance({
+          testnet: isTestnet,
+          address,
+        });
+        break;
       case "zksync-goerli":
       case "altlayer-devnet":
+      case "trust-testnet":
+      case "goerli":
+      case "bsc-testnet":
       case "metis-goerli":
         if (isNativeToken) {
           onChainBalance = await ethers.getNativeTokenBalance({
@@ -221,7 +245,11 @@ export const logWalletTransactions = async (
     const { walletId, transaction } = params;
 
     const {
-      token: { network, symbol, decimals, blockchain },
+      token: {
+        network: { name: network, blockchain },
+        symbol,
+        decimals,
+      },
       address,
       app: { id: appId, webhookUrl, displayName, supportEmail },
       id: walletReference,
@@ -230,6 +258,20 @@ export const logWalletTransactions = async (
     let normalizedTransaction: NormalizedTransaction;
 
     switch (network) {
+      case "goerli":
+      case "bsc-testnet":
+        normalizedTransaction = await covalent.normalizeTransaction(
+          transaction,
+          address,
+          network
+        );
+        break;
+      case "bitcoin-testnet":
+        normalizedTransaction = blockstream.normalizeTransaction({
+          address,
+          transaction,
+        });
+        break;
       case "zksync-goerli":
         normalizedTransaction = await zksync.v2.normalizeTransaction(
           transaction,
@@ -238,6 +280,7 @@ export const logWalletTransactions = async (
         );
         break;
       case "metis-goerli":
+      case "trust-testnet":
       case "altlayer-devnet":
         normalizedTransaction = await blockscout.normalizeTransaction(
           transaction,
@@ -251,6 +294,7 @@ export const logWalletTransactions = async (
           message: "This network is not supported yet",
         };
     }
+
     if (normalizedTransaction.type !== "credit")
       return { status: false, message: "Can't log non-credit transaction" };
 
@@ -362,18 +406,33 @@ export const updateWalletTransactions = async (
   try {
     const { address } = params;
 
-    const wallets: Array<WalletSchema> = await Wallet.findAll({
+    const wallets: WalletSchema[] = await Wallet.findAll({
       where: { address },
     });
 
     for (let index = 0; index < wallets.length; index += 1) {
       const {
-        token: { network },
+        token: {
+          network: { name: network },
+        },
         id: walletId,
       } = wallets[index];
       let transactions: any;
 
       switch (network) {
+        case "goerli":
+        case "bsc-testnet":
+          transactions = await covalent.getAllTransactions({
+            address,
+            network,
+          });
+          break;
+        case "bitcoin-testnet":
+          transactions = await blockstream.getAllTransactions({
+            address,
+            testnet: isTestnet,
+          });
+          break;
         case "zksync-goerli":
           transactions = await zksync.v2.getAllTransactions({
             address,
@@ -381,6 +440,7 @@ export const updateWalletTransactions = async (
           });
           break;
         case "metis-goerli":
+        case "trust-testnet":
         case "altlayer-devnet":
           transactions = await blockscout.getAllTransactions({
             address,
@@ -430,10 +490,13 @@ export const drainWalletOnChain = async (
       token: {
         minimumDrainAmount,
         decimals,
-        network,
+        network: {
+          name: network,
+          blockchain,
+          walletFactory: walletFactoryAddress,
+        },
         isNativeToken,
         contractAddress: tokenAddress,
-        blockchain,
       },
       app: { id: appId },
       index: walletIndex,
@@ -441,8 +504,12 @@ export const drainWalletOnChain = async (
 
     if (blockchain === "ethereum") {
       switch (network) {
-        case "altlayer-devnet": {
-          const contractAddress = await WALLET_FACTORY_ADDRESS(network);
+        case "altlayer-devnet":
+        case "metis-goerli":
+        case "goerli":
+        case "bsc-testnet":
+        case "trust-testnet": {
+          const contractAddress = walletFactoryAddress;
           const walletFactory = ethers.getFactory({
             contractAddress,
             network,
