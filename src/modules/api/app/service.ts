@@ -8,8 +8,6 @@ import { NETWORK } from "../../../helpers/crypto/bitcoin/bitcoinjs-lib";
 import { currentPrices } from "../../../helpers/crypto/coingecko";
 import { ethers } from "../../../helpers/crypto/ethereum";
 import { App, SupportedToken, User, Wallet } from "../../../models";
-import { AppSchema, UserSchema, WalletSchema } from "../../../types/models";
-import { SupportedTokenSchema } from "../../../types/models/SupportedToken";
 import { api, others } from "../../../types/services";
 import { updateWalletBalance } from "../utils/service";
 
@@ -23,7 +21,7 @@ export const createApp = async (
 ): Promise<others.Response> => {
   try {
     const { name, userId } = params;
-    const user: UserSchema = await User.findByPk(userId);
+    const user = await User.findByPk(userId);
 
     const exists = await App.findOne({
       where: { "user.email": user.email, name, isDeleted: false },
@@ -59,7 +57,7 @@ export const getApps = async (
   try {
     const { userId } = params;
 
-    const user: UserSchema = await User.findByPk(userId);
+    const user = await User.findByPk(userId);
     const data = await App.findAll({
       where: { "user.email": user.email, isDeleted: false },
     });
@@ -88,9 +86,9 @@ export const getAppKeys = async (
   try {
     const { userId, name } = params;
 
-    const user: UserSchema = await User.findByPk(userId);
+    const user = await User.findByPk(userId);
 
-    const app: AppSchema = await App.findOne({
+    const app = await App.findOne({
       where: { "user.email": user.email, name, isDeleted: false },
     });
 
@@ -138,9 +136,9 @@ export const updateApp = async (
       webhookUrl,
     } = params;
 
-    const user: UserSchema = await User.findByPk(userId);
+    const user = await User.findByPk(userId);
 
-    const app: AppSchema = await App.findOne({
+    const app = await App.findOne({
       where: { "user.email": user.email, name, isDeleted: false },
     });
 
@@ -188,9 +186,9 @@ export const deleteApp = async (
   try {
     const { userId, name } = params;
 
-    const user: UserSchema = await User.findByPk(userId);
+    const user = await User.findByPk(userId);
 
-    const app: AppSchema = await App.findOne({
+    const app = await App.findOne({
       where: { "user.email": user.email, name },
     });
 
@@ -241,7 +239,7 @@ export const generateWallet = async (
     } = params;
     let { index } = params;
 
-    const token: SupportedTokenSchema = await SupportedToken.findOne({
+    const token = await SupportedToken.findOne({
       where: {
         "network.name": network,
         "network.blockchain": blockchain,
@@ -278,7 +276,7 @@ export const generateWallet = async (
             network,
           });
 
-          const { secretKey }: AppSchema = await App.findByPk(appId);
+          const { secretKey } = await App.findByPk(appId);
 
           const salt = SALT({ walletIndex: index, secretKey });
           address = await ethers.getAddressWithFactory({ salt, walletFactory });
@@ -299,7 +297,7 @@ export const generateWallet = async (
       }).address;
     }
 
-    const app: AppSchema = await App.findByPk(appId);
+    const app = await App.findByPk(appId);
     let expiresAt: number;
 
     if (addressValidity)
@@ -311,7 +309,7 @@ export const generateWallet = async (
       name: contactName,
     };
 
-    const { id: reference }: WalletSchema = await Wallet.create({
+    const { id: reference } = await Wallet.create({
       app,
       token,
       address,
@@ -611,7 +609,7 @@ export const getAppBalances = async (
   try {
     const { appId } = params;
 
-    const tokens: SupportedTokenSchema[] = await SupportedToken.findAll({
+    const tokens = await SupportedToken.findAll({
       where: { verified: true },
     });
     const data: any = [];
@@ -646,7 +644,7 @@ export const completeSendTransaction = async ({
   amount,
   to,
 }: {
-  token: SupportedTokenSchema;
+  token: SupportedToken;
   blockchain: "ethereum" | "bitcoin";
   network: string;
   amount: number;
@@ -686,14 +684,14 @@ export const completeSendTransaction = async ({
         return false;
     }
   } else if (blockchain === "bitcoin") {
-    const wallets: WalletSchema[] = await Wallet.findAll({
+    const wallets = await Wallet.findAll({
       where: {
         "token.symbol": "btc",
         platformBalance: { [Op.gt]: 0 },
       },
     });
     const fromPaths = wallets.map((wallet) => HD_PATH(wallet.index));
-    const { address: changeAddress }: WalletSchema = await Wallet.findOne({
+    const { address: changeAddress } = await Wallet.findOne({
       where: { index: 0, "token.symbol": "btc" },
     });
 
@@ -723,7 +721,7 @@ export const sendCrypto = async (
   try {
     const { amount, network, token: symbol, to, blockchain, appId } = params;
 
-    const token: SupportedTokenSchema = await SupportedToken.findOne({
+    const token = await SupportedToken.findOne({
       where: { symbol, "network.name": network, blockchain },
     });
 

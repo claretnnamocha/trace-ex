@@ -1,31 +1,28 @@
-import { Sequelize } from "sequelize";
-import { dbSecure, dbURL } from "../env";
+import { SyncOptions } from "sequelize";
+import { Sequelize, SequelizeOptions } from "sequelize-typescript";
+import * as models from "../../models";
+import { clearDb, dbSecure, dbURL } from "../env";
 import { seed } from "./seed";
 
-export const db = new Sequelize(dbURL, {
-  dialectOptions: !dbSecure
-    ? {}
-    : { ssl: { require: true, rejectUnauthorized: false } },
+const dbOptions: SequelizeOptions = {
+  dialectOptions: {
+    ssl: dbSecure && {
+      require: true,
+      rejectUnauthorized: false,
+    },
+  },
   logging: false,
-});
+  models: Object.values(models),
+};
 
-export const authenticate = async ({ clear = false }) => {
+export const db: Sequelize = new Sequelize(dbURL, dbOptions);
+
+export const authenticate = async () => {
   try {
-    await db.authenticate();
-    console.log("Connection to Database has been established successfully.");
+    const syncOptions: SyncOptions = { force: clearDb, alter: true };
+    await db.sync(syncOptions);
 
-    const models = await import("../../models");
-    const opts = clear ? { force: true } : { alter: true };
-
-    const modelSync = [];
-    const keys = Object.keys(models);
-    for (let i = 0; i < keys.length; i += 1) {
-      const schema = keys[i];
-      modelSync.push(models[schema].sync(opts));
-    }
-    await Promise.all(modelSync);
-
-    if (clear) await seed();
+    if (clearDb) await seed();
 
     console.log("Database Migrated");
   } catch (error) {

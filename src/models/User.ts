@@ -1,128 +1,136 @@
 import bcrypt from "bcryptjs";
 import { authenticator } from "otplib";
 import { DataTypes, UUIDV4 } from "sequelize";
-import { db } from "../configs/db";
+import { Column, IsUUID, Model, PrimaryKey, Table } from "sequelize-typescript";
 import { totpWindow } from "../configs/env";
-import { UserSchema } from "../types/models";
 
-const User = db.define(
-  "User",
-  {
-    id: {
-      type: DataTypes.UUID,
-      primaryKey: true,
-      defaultValue: UUIDV4,
+@Table({
+  tableName: "user",
+  hooks: {
+    async afterCreate(attributes) {
+      const instance = attributes;
+      const totp = authenticator.generateSecret();
+      await instance.update({ totp });
     },
-    email: { type: DataTypes.STRING, allowNull: false, unique: true },
-    firstName: { type: DataTypes.STRING },
-    lastName: { type: DataTypes.STRING },
-    avatar: { type: DataTypes.STRING },
-    role: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      defaultValue: "user",
-      values: ["user", "admin"],
-    },
-    permissions: {
-      type: DataTypes.ARRAY(DataTypes.STRING),
-      defaultValue: [],
-      allowNull: false,
-    },
-    phone: { type: DataTypes.STRING },
-    location: { type: DataTypes.STRING },
-    password: {
-      type: DataTypes.STRING,
-      set(value: string) {
-        const salt = bcrypt.genSaltSync();
-        this.setDataValue("password", bcrypt.hashSync(value, salt));
-      },
-    },
-    isDeleted: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-      allowNull: false,
-    },
-    verifiedEmail: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: true,
-      allowNull: false,
-    },
-    verifiedPhone: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-      allowNull: false,
-    },
-    active: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: true,
-      allowNull: false,
-    },
-    totp: { type: DataTypes.TEXT },
-    loginValidFrom: {
-      type: DataTypes.STRING,
-      defaultValue: Date.now(),
-      allowNull: false,
+    async afterBulkCreate(instances) {
+      for (let index = 0; index < instances.length; index += 1) {
+        const instance = instances[index];
+        const totp = authenticator.generateSecret();
+
+        await instance.update({ totp });
+      }
     },
   },
-  {
-    timestamps: true,
-    tableName: "user",
-    hooks: {
-      async afterCreate(attributes) {
-        const instance: UserSchema = attributes;
-        const totp = authenticator.generateSecret();
-        await instance.update({ totp });
-      },
-      async afterBulkCreate(instances) {
-        for (let index = 0; index < instances.length; index += 1) {
-          const instance: UserSchema = instances[index];
-          const totp = authenticator.generateSecret();
+})
+export class User extends Model {
+  @IsUUID("4")
+  @PrimaryKey
+  @Column({
+    defaultValue: UUIDV4,
+    type: DataTypes.STRING,
+  })
+  public id: string;
 
-          await instance.update({ totp });
-        }
-      },
+  @Column({ type: DataTypes.STRING, allowNull: false, unique: true })
+  public email: string;
+
+  @Column({ type: DataTypes.STRING })
+  public firstName: string;
+
+  @Column({ type: DataTypes.STRING })
+  public lastName: string;
+
+  @Column({ type: DataTypes.STRING })
+  public avatar: string;
+
+  @Column({
+    type: DataTypes.STRING,
+    allowNull: false,
+    defaultValue: "user",
+    values: ["user", "admin"],
+  })
+  public role: string;
+
+  @Column({ type: DataTypes.STRING })
+  public phone: string;
+
+  @Column({
+    type: DataTypes.STRING,
+    set(value: string) {
+      const salt = bcrypt.genSaltSync();
+      this.setDataValue("password", bcrypt.hashSync(value, salt));
     },
+  })
+  public password: string;
+
+  @Column({
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+    allowNull: false,
+  })
+  public isDeleted: boolean;
+
+  @Column({
+    type: DataTypes.BOOLEAN,
+    defaultValue: true,
+    allowNull: false,
+  })
+  public verifiedEmail: boolean;
+
+  @Column({
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+    allowNull: false,
+  })
+  public verifiedPhone: boolean;
+
+  @Column({
+    type: DataTypes.BOOLEAN,
+    defaultValue: true,
+    allowNull: false,
+  })
+  public active: boolean;
+
+  @Column({ type: DataTypes.TEXT })
+  public totp: string;
+
+  @Column({
+    type: DataTypes.STRING,
+    defaultValue: Date.now(),
+    allowNull: false,
+  })
+  public loginValidFrom: string;
+
+  toJSON() {
+    const data = this.dataValues;
+
+    delete data.totp;
+    delete data.password;
+    delete data.loginValidFrom;
+    delete data.role;
+    delete data.permissions;
+    delete data.active;
+    delete data.isDeleted;
+    delete data.id;
+    return data;
   }
-);
 
-User.prototype.toJSON = function toJSON() {
-  const data = this.dataValues;
+  validatePassword(val: string) {
+    return bcrypt.compareSync(val, this.getDataValue("password"));
+  }
 
-  delete data.totp;
-  delete data.password;
-  delete data.loginValidFrom;
-  delete data.role;
-  delete data.permissions;
-  delete data.active;
-  delete data.isDeleted;
-  delete data.id;
-  return data;
-};
+  validateTotp(token: string, digits: number = 6, window: number = totpWindow) {
+    authenticator.options = { digits, step: window * 60 };
+    return authenticator.check(token, this.getDataValue("totp"));
+  }
 
-User.prototype.validatePassword = function validatePassword(val: string) {
-  return bcrypt.compareSync(val, this.getDataValue("password"));
-};
+  generateTotp(digits: number = 6, window: number = totpWindow) {
+    authenticator.options = { digits, step: window * 60 };
+    return authenticator.generate(this.getDataValue("totp"));
+  }
 
-User.prototype.validateTotp = function validateTotp(
-  token: string,
-  digits: number = 6,
-  window: number = totpWindow
-) {
-  authenticator.options = { digits, step: window * 60 };
-  return authenticator.check(token, this.getDataValue("totp"));
-};
-
-User.prototype.generateTotp = function generateTotp(
-  digits: number = 6,
-  window: number = totpWindow
-) {
-  authenticator.options = { digits, step: window * 60 };
-  return authenticator.generate(this.getDataValue("totp"));
-};
-
-User.prototype.regenerateOtpSecret = async function regenerateOtpSecret() {
-  const user = await User.findByPk(this.id);
-  user.update({ totp: authenticator.generateSecret() });
-};
-
-export { User };
+  async regenerateOtpSecret() {
+    const user = await User.findByPk(this.id);
+    user.update({ totp: authenticator.generateSecret() });
+  }
+}
