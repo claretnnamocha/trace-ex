@@ -2,7 +2,7 @@
 
 ## Docs
 
-[https://traceexchange.up.railway.app/api-docs]
+[https://trace-ex.up.railway.app/api-docs]
 
 | Supported Networks |
 | ------------------ |
