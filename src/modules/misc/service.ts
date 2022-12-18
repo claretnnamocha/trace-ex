@@ -1,6 +1,5 @@
 import { db } from "../../configs/db";
 import { SupportedToken } from "../../models";
-import { SupportedTokenSchema } from "../../types/models";
 import { others } from "../../types/services";
 
 /**
@@ -54,7 +53,7 @@ export const supportedNetworks = async ({
 
     if (symbol) where = { symbol, ...where };
 
-    const tokens: SupportedTokenSchema[] = await SupportedToken.findAll({
+    const tokens = await SupportedToken.findAll({
       where,
       attributes: ["network"],
       group: ["network"],

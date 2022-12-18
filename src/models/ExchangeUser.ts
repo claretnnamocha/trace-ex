@@ -1,120 +1,135 @@
 import bcrypt from "bcryptjs";
 import { authenticator } from "otplib";
 import { DataTypes, UUIDV4 } from "sequelize";
-import { db } from "../configs/db";
+import { Column, IsUUID, Model, PrimaryKey, Table } from "sequelize-typescript";
+import { App } from ".";
 import { totpWindow } from "../configs/env";
-import { UserSchema } from "../types/models";
 
-const ExchangeUser = db.define(
-  "ExchangeUser",
-  {
-    id: {
-      type: DataTypes.UUID,
-      primaryKey: true,
-      defaultValue: UUIDV4,
+@Table({
+  tableName: "exchangeUser",
+  hooks: {
+    async afterCreate(attributes) {
+      const instance = attributes;
+      const totp = authenticator.generateSecret();
+      await instance.update({ totp });
     },
-    email: { type: DataTypes.STRING, allowNull: false, unique: true },
-    firstName: { type: DataTypes.STRING },
-    app: { type: DataTypes.JSONB, allowNull: false },
-    lastName: { type: DataTypes.STRING },
-    avatar: { type: DataTypes.STRING },
-    phone: { type: DataTypes.STRING },
-    index: { type: DataTypes.INTEGER },
-    password: {
-      type: DataTypes.STRING,
-      set(value: string) {
-        const salt = bcrypt.genSaltSync();
-        this.setDataValue("password", bcrypt.hashSync(value, salt));
-      },
-    },
-    isDeleted: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-      allowNull: false,
-    },
-    verifiedEmail: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: true,
-      allowNull: false,
-    },
-    verifiedPhone: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-      allowNull: false,
-    },
-    active: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: true,
-      allowNull: false,
-    },
-    totp: { type: DataTypes.TEXT },
-    loginValidFrom: {
-      type: DataTypes.STRING,
-      defaultValue: Date.now(),
-      allowNull: false,
+    async afterBulkCreate(instances) {
+      for (let index = 0; index < instances.length; index += 1) {
+        const instance = instances[index];
+        const totp = authenticator.generateSecret();
+
+        await instance.update({ totp });
+      }
     },
   },
-  {
-    timestamps: true,
-    tableName: "exchangeUser",
-    hooks: {
-      async afterCreate(attributes) {
-        const instance: UserSchema = attributes;
-        const totp = authenticator.generateSecret();
-        await instance.update({ totp });
-      },
-      async afterBulkCreate(instances) {
-        for (let index = 0; index < instances.length; index += 1) {
-          const instance: UserSchema = instances[index];
-          const totp = authenticator.generateSecret();
+})
+export class ExchangeUser extends Model {
+  @IsUUID("4")
+  @PrimaryKey
+  @Column({
+    defaultValue: UUIDV4,
+    type: DataTypes.STRING,
+  })
+  public id: string;
 
-          await instance.update({ totp });
-        }
-      },
+  @Column({ type: DataTypes.INTEGER, allowNull: false })
+  public index: number;
+
+  @Column({ type: DataTypes.STRING, allowNull: false, unique: true })
+  public email: string;
+
+  @Column({ type: DataTypes.JSONB, allowNull: false })
+  public app: App;
+
+  @Column({ type: DataTypes.STRING })
+  public firstName: string;
+
+  @Column({ type: DataTypes.STRING })
+  public lastName: string;
+
+  @Column({ type: DataTypes.STRING })
+  public avatar: string;
+
+  @Column({ type: DataTypes.STRING })
+  public phone: string;
+
+  @Column({
+    type: DataTypes.STRING,
+    set(value: string) {
+      const salt = bcrypt.genSaltSync();
+      this.setDataValue("password", bcrypt.hashSync(value, salt));
     },
+  })
+  public password: string;
+
+  @Column({
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+    allowNull: false,
+  })
+  public isDeleted: boolean;
+
+  @Column({
+    type: DataTypes.BOOLEAN,
+    defaultValue: true,
+    allowNull: false,
+  })
+  public verifiedEmail: boolean;
+
+  @Column({
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+    allowNull: false,
+  })
+  public verifiedPhone: boolean;
+
+  @Column({
+    type: DataTypes.BOOLEAN,
+    defaultValue: true,
+    allowNull: false,
+  })
+  public active: boolean;
+
+  @Column({ type: DataTypes.TEXT })
+  public totp: string;
+
+  @Column({
+    type: DataTypes.STRING,
+    defaultValue: Date.now(),
+    allowNull: false,
+  })
+  public loginValidFrom: string;
+
+  toJSON() {
+    const data = this.dataValues;
+
+    delete data.totp;
+    delete data.password;
+    delete data.loginValidFrom;
+    delete data.role;
+    delete data.permissions;
+    delete data.active;
+    delete data.isDeleted;
+    delete data.id;
+    return data;
   }
-);
 
-ExchangeUser.prototype.toJSON = function toJSON() {
-  const data = this.dataValues;
+  validatePassword(val: string) {
+    return bcrypt.compareSync(val, this.getDataValue("password"));
+  }
 
-  delete data.totp;
-  delete data.password;
-  delete data.loginValidFrom;
-  delete data.active;
-  delete data.isDeleted;
-  delete data.id;
-  delete data.app;
-  return data;
-};
+  validateTotp(token: string, digits: number = 6, window: number = totpWindow) {
+    authenticator.options = { digits, step: window * 60 };
+    return authenticator.check(token, this.getDataValue("totp"));
+  }
 
-ExchangeUser.prototype.validatePassword = function validatePassword(
-  val: string
-) {
-  return bcrypt.compareSync(val, this.getDataValue("password"));
-};
+  generateTotp(digits: number = 6, window: number = totpWindow) {
+    authenticator.options = { digits, step: window * 60 };
+    return authenticator.generate(this.getDataValue("totp"));
+  }
 
-ExchangeUser.prototype.validateTotp = function validateTotp(
-  token: string,
-  digits: number = 6,
-  window: number = totpWindow
-) {
-  authenticator.options = { digits, step: window * 60 };
-  return authenticator.check(token, this.getDataValue("totp"));
-};
-
-ExchangeUser.prototype.generateTotp = function generateTotp(
-  digits: number = 6,
-  window: number = totpWindow
-) {
-  authenticator.options = { digits, step: window * 60 };
-  return authenticator.generate(this.getDataValue("totp"));
-};
-
-ExchangeUser.prototype.regenerateOtpSecret =
-  async function regenerateOtpSecret() {
+  async regenerateOtpSecret() {
     const user = await ExchangeUser.findByPk(this.id);
     user.update({ totp: authenticator.generateSecret() });
-  };
-
-export { ExchangeUser };
+  }
+}

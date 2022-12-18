@@ -6,7 +6,6 @@ import { v4 as uuid } from "uuid";
 import { jwt } from "../../helpers";
 import { sendEmail } from "../../jobs";
 import { User } from "../../models";
-import { UserSchema } from "../../types/models";
 import { auth, others } from "../../types/services";
 
 const { FRONTEND_BASEURL } = process.env;
@@ -29,7 +28,7 @@ export const signUp = async (
         const where: any = { [param]: params[param] };
 
         /* eslint-disable-next-line no-await-in-loop */
-        const duplicate: UserSchema = await User.findOne({ where });
+        const duplicate = await User.findOne({ where });
         if (duplicate) {
           return {
             payload: {
@@ -42,7 +41,7 @@ export const signUp = async (
       }
     }
 
-    const user: UserSchema = await User.create({
+    const user = await User.create({
       ...params,
     });
 
@@ -102,7 +101,7 @@ export const signIn = async (
   try {
     const { user: identifier, password } = params;
 
-    const user: UserSchema = await User.findOne({
+    const user = await User.findOne({
       where: {
         [Op.or]: [{ email: identifier }, { phone: identifier }],
       },
@@ -192,7 +191,7 @@ export const verifyAccount = async (
   try {
     const { token, email, resend } = params;
 
-    const user: UserSchema = await User.findOne({
+    const user = await User.findOne({
       where: { email },
     });
 
@@ -279,7 +278,7 @@ export const initiateReset = async (
   try {
     const { email } = params;
 
-    const user: UserSchema = await User.findOne({
+    const user = await User.findOne({
       where: { email, isDeleted: false },
     });
 
@@ -347,7 +346,7 @@ export const verifyReset = async (
   try {
     const { token, email } = params;
 
-    const user: UserSchema = await User.findOne({
+    const user = await User.findOne({
       where: { email },
     });
 
@@ -387,7 +386,7 @@ export const resetPassword = async (
   try {
     const { token, password, logOtherDevicesOut, email } = params;
 
-    const user: UserSchema = await User.findOne({
+    const user = await User.findOne({
       where: { email },
     });
 

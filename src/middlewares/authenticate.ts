@@ -7,7 +7,6 @@ import { response } from "../helpers";
 import { User } from "../models";
 import { CustomRequest } from "../types/controllers";
 import { auth } from "../types/middlewares";
-import { UserSchema } from "../types/models";
 
 export const authenticate =
   ({ isAdmin = false, roles = ["user", "admin", "super-admin"] }: auth) =>
@@ -34,7 +33,7 @@ export const authenticate =
         where.role = { [Op.in]: roles };
       }
 
-      const user: UserSchema = await User.findOne({ where });
+      const user = await User.findOne({ where });
 
       if (!user || loginValidFrom < user.loginValidFrom)
         return response(res, { status: false, message: "Unauthorized" }, 401);

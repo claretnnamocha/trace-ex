@@ -3,7 +3,6 @@ import { debug } from "../configs/env";
 import { response } from "../helpers";
 import { App } from "../models";
 import { CustomRequest } from "../types/controllers";
-import { AppSchema } from "../types/models";
 
 export const authenticateKey = async (
   req: CustomRequest,
@@ -22,7 +21,7 @@ export const authenticateKey = async (
       );
     }
 
-    const app: AppSchema = await App.findOne({
+    const app = await App.findOne({
       where: { isDeleted: false, secretKey },
     });
 

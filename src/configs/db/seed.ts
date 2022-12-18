@@ -1,8 +1,3 @@
-import {
-  AppSchema,
-  SupportedTokenSchema,
-  UserSchema,
-} from "../../types/models";
 import { isTestnet } from "../env";
 
 const supportedTokens = {
@@ -168,7 +163,7 @@ const createDefaultUser = async () => {
   return user;
 };
 
-const createDefaultExchangeUser = async (app: AppSchema) => {
+const createDefaultExchangeUser = async (app) => {
   const { SupportedToken, Wallet, ExchangeUser } = await import("../../models");
 
   let walletIndex: number = await Wallet.max("index");
@@ -186,7 +181,7 @@ const createDefaultExchangeUser = async (app: AppSchema) => {
   });
 
   const { generateWallet } = await import("../../modules/api/app/service");
-  const tokens: SupportedTokenSchema[] = await SupportedToken.findAll({
+  const tokens = await SupportedToken.findAll({
     where: { verified: true },
   });
 
@@ -209,7 +204,7 @@ const createDefaultExchangeUser = async (app: AppSchema) => {
   counter += 1;
 };
 
-const createDefaultApp = async (user: UserSchema) => {
+const createDefaultApp = async (user) => {
   const id = "b5d797c1-dc90-4230-8510-4df5026ccff9";
   const webhookUrl = "https://eoz0svlp6qduwmn.m.pipedream.net";
   const testWebhookUrl = webhookUrl;

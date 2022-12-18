@@ -15,12 +15,7 @@ import {
 import { NormalizedTransaction } from "../../../helpers/crypto/ethereum/ethers";
 import { sendEmail, sendWebhook } from "../../../jobs";
 import { App, SupportedToken, Transaction, Wallet } from "../../../models";
-import {
-  AppSchema,
-  SupportedTokenSchema,
-  TransactionSchema,
-  WalletSchema,
-} from "../../../types/models";
+
 import { api, others } from "../../../types/services";
 
 const { FRONTEND_BASEURL } = process.env;
@@ -36,7 +31,7 @@ export const getBalance = async (
   try {
     const { network, address, token: symbol, blockchain } = params;
 
-    const token: SupportedTokenSchema = await SupportedToken.findOne({
+    const token = await SupportedToken.findOne({
       where: { symbol, "network.name": network },
     });
 
@@ -113,15 +108,15 @@ export const updateWalletBalance = async (
   try {
     const { walletId, transaction, amount, type, confirmed, appId } = params;
 
-    let wallet: WalletSchema | any;
+    let wallet: Wallet | any;
 
     if (walletId) wallet = await Wallet.findByPk(walletId);
     else if (appId) {
-      const app: AppSchema = await App.findByPk(appId);
-      wallet = { app };
+      const app = await App.findByPk(appId);
+      wallet = { app, token: transaction?.token };
     }
 
-    const { id: transactionId }: TransactionSchema = await Transaction.create({
+    const { id: transactionId } = await Transaction.create({
       wallet,
       metadata: { transaction },
       type,
@@ -129,34 +124,32 @@ export const updateWalletBalance = async (
       confirmed,
     });
 
-    let [{ amount: totalRecieved }]: TransactionSchema[] =
-      await Transaction.findAll({
-        where: { type: "credit", "wallet.id": walletId, shouldAggregate: true },
-        attributes: [
-          [
-            sequelize.fn(
-              "sum",
-              sequelize.cast(sequelize.col("amount"), "DECIMAL")
-            ),
-            "amount",
-          ],
+    let [{ amount: totalRecieved }] = await Transaction.findAll({
+      where: { type: "credit", "wallet.id": walletId, shouldAggregate: true },
+      attributes: [
+        [
+          sequelize.fn(
+            "sum",
+            sequelize.cast(sequelize.col("amount"), "DECIMAL")
+          ),
+          "amount",
         ],
-      });
+      ],
+    });
     totalRecieved = new BigNumber(totalRecieved || 0).toFixed();
 
-    let [{ amount: totalSpent }]: TransactionSchema[] =
-      await Transaction.findAll({
-        where: { type: "debit", "wallet.id": walletId, shouldAggregate: true },
-        attributes: [
-          [
-            sequelize.fn(
-              "sum",
-              sequelize.cast(sequelize.col("amount"), "DECIMAL")
-            ),
-            "amount",
-          ],
+    let [{ amount: totalSpent }] = await Transaction.findAll({
+      where: { type: "debit", "wallet.id": walletId, shouldAggregate: true },
+      attributes: [
+        [
+          sequelize.fn(
+            "sum",
+            sequelize.cast(sequelize.col("amount"), "DECIMAL")
+          ),
+          "amount",
         ],
-      });
+      ],
+    });
     totalSpent = new BigNumber(totalSpent || 0).toFixed();
 
     const platformBalance = new BigNumber(totalRecieved)
@@ -254,7 +247,7 @@ export const logWalletTransactions = async (
       app: { id: appId, webhookUrl, displayName, supportEmail },
       id: walletReference,
       contact,
-    }: WalletSchema = await Wallet.findByPk(walletId);
+    } = await Wallet.findByPk(walletId);
     let normalizedTransaction: NormalizedTransaction;
 
     switch (network) {
@@ -406,7 +399,7 @@ export const updateWalletTransactions = async (
   try {
     const { address } = params;
 
-    const wallets: WalletSchema[] = await Wallet.findAll({
+    const wallets = await Wallet.findAll({
       where: { address },
     });
 
@@ -500,7 +493,7 @@ export const drainWalletOnChain = async (
       },
       app: { id: appId },
       index: walletIndex,
-    }: WalletSchema = await Wallet.findByPk(walletId);
+    } = await Wallet.findByPk(walletId);
 
     if (blockchain === "ethereum") {
       switch (network) {
@@ -516,7 +509,7 @@ export const drainWalletOnChain = async (
             privateKey: spenderPrivateKey,
           });
 
-          const { secretKey }: AppSchema = await App.findByPk(appId);
+          const { secretKey } = await App.findByPk(appId);
           const salt = SALT({ walletIndex, secretKey });
 
           const balance = isNativeToken

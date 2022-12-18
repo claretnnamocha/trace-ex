@@ -5,7 +5,6 @@ import { debug } from "../configs/env";
 import { response } from "../helpers";
 import { ExchangeUser } from "../models";
 import { CustomRequest } from "../types/controllers";
-import { ExchangeUserSchema } from "../types/models";
 
 export const authenticate2 = async (
   req: CustomRequest,
@@ -28,7 +27,7 @@ export const authenticate2 = async (
 
     const where: any = { id: userId, isDeleted: false, active: true };
 
-    const user: ExchangeUserSchema = await ExchangeUser.findOne({ where });
+    const user = await ExchangeUser.findOne({ where });
 
     if (!user || loginValidFrom < user.loginValidFrom)
       return response(res, { status: false, message: "Unauthorized" }, 401);

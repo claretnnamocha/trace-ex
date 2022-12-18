@@ -17,7 +17,7 @@ import routes from "./routes";
 config();
 
 const app = express();
-const { port, clearDb } = env;
+const { port } = env;
 
 app.use(formdata.parse());
 app.use(express.json({ limit: "100mb", type: "application/json" }));
@@ -48,7 +48,7 @@ app.use((error: Error, _: Request, res: Response) =>
 
 if (require.main) {
   app.listen(port, async () => {
-    await db.authenticate({ clear: clearDb });
+    await db.authenticate();
     console.log(
       `${displayName} is running on http://localhost:${port} (${env.env}) (${
         isTestnet ? "testnet" : "mainnet"

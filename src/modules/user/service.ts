@@ -3,7 +3,6 @@ import { Op } from "sequelize";
 import { displayName } from "../../../package.json";
 import { jwt, sms } from "../../helpers";
 import { User } from "../../models";
-import { UserSchema } from "../../types/models";
 import {
   auth as authTypes,
   others,
@@ -21,7 +20,7 @@ export const getProfile = async (
   try {
     const { userId } = params;
 
-    const data: UserSchema = await User.findByPk(userId);
+    const data = await User.findByPk(userId);
 
     if (!data) {
       return {
@@ -54,14 +53,14 @@ export const verifyPhone = async (
   try {
     const { token, userId } = params;
 
-    let user: UserSchema = await User.findByPk(userId);
+    let user = await User.findByPk(userId);
 
     if (!token) {
       const generatedToken: string = user.generateTotp();
 
       const status = await sms.africastalking.send({
         to: user.phone,
-        body: `Dear ${user.username}, Your ${displayName} verification code is ${generatedToken}`,
+        body: `Dear ${user.firstName}, Your ${displayName} verification code is ${generatedToken}`,
       });
 
       if (status) await user.update({ verifiedPhone: true });
@@ -123,7 +122,7 @@ export const updateProfile = async (
   try {
     const { userId } = params;
 
-    const user: UserSchema = await User.findOne({
+    const user = await User.findOne({
       where: { id: userId, isDeleted: false },
     });
 
@@ -156,7 +155,7 @@ export const updatePassword = async (
   try {
     const { userId, newPassword, password, logOtherDevicesOut } = params;
 
-    const user: UserSchema = await User.findOne({
+    const user = await User.findOne({
       where: { id: userId, isDeleted: false },
     });
 
@@ -203,7 +202,7 @@ export const logOtherDevicesOut = async (
   try {
     const { userId } = params;
 
-    const user: UserSchema = await User.findByPk(userId);
+    const user = await User.findByPk(userId);
     await user.update({ loginValidFrom: Date.now().toString() });
 
     const data: any = jwt.generate({
@@ -300,7 +299,7 @@ export const getAllUsers = async (
     if ("active" in params) where = { ...where, active };
     if ("isDeleted" in params) where = { ...where, isDeleted };
 
-    const data: UserSchema[] = await User.findAll({
+    const data = await User.findAll({
       where,
       order: [["createdAt", "DESC"]],
       limit: pageSize,
@@ -338,7 +337,7 @@ export const getTotpQrCode = async (
   try {
     const { userId } = params;
 
-    const user: UserSchema = await User.findByPk(userId);
+    const user = await User.findByPk(userId);
 
     const data = authenticator.keyuri(user.email, displayName, user.totp);
 
@@ -370,7 +369,7 @@ export const validateTotp = async (
   try {
     const { userId, token } = params;
 
-    const user: UserSchema = await User.findOne({
+    const user = await User.findOne({
       where: { id: userId, isDeleted: false },
     });
 
@@ -411,7 +410,7 @@ export const regenerateTotpSecret = async (
   try {
     const { userId } = params;
 
-    const user: UserSchema = await User.findByPk(userId);
+    const user = await User.findByPk(userId);
 
     await user.regenerateOtpSecret();
 
