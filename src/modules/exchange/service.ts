@@ -1094,8 +1094,8 @@ export const sendCrypto = async (
       where: {
         index: user.index,
         "token.symbol": symbol,
-        "token.network": network,
-        "token.blockchain": blockchain,
+        "token.network.name": network,
+        "token.network.blockchain": blockchain,
       },
     });
 

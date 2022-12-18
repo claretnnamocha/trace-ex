@@ -181,7 +181,6 @@ paths:
       security:
         - Bearer: []
         - API_SECRET_KEY: []
-        - API_SECRET_KEY: []
       responses:
         200:
           description: Success

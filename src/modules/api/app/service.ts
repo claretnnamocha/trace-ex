@@ -252,8 +252,8 @@ export const generateWallet = async (
     if (!index) {
       index = await Wallet.max("index", {
         where: {
-          "token.blockchain": blockchain,
-          "token.network": network,
+          "token..network.blockchain": blockchain,
+          "token.network.name": network,
           "token.symbol": symbol,
         },
       });
@@ -521,7 +521,7 @@ const getTotal = async (params: any): Promise<others.Response> => {
     FROM
       "transaction"
     WHERE
-      CAST(wallet ->> 'app' AS JSONB) ->> 'id' = 'b5d797c1-dc90-4230-8510-4df5026ccff9'
+      CAST(wallet ->> 'app' AS JSONB) ->> 'id' = :appId
       AND "type" = :type
       ${
         token
@@ -576,6 +576,8 @@ export const getAppBalance = async (
       token,
       type: "debit",
     });
+
+    console.log(credit, debit, token);
 
     const balance = new BigNumber(credit)
       .minus(new BigNumber(debit))
@@ -686,13 +688,14 @@ export const completeSendTransaction = async ({
   } else if (blockchain === "bitcoin") {
     const wallets = await Wallet.findAll({
       where: {
-        "token.symbol": "btc",
-        platformBalance: { [Op.gt]: 0 },
+        "token.symbol": token.symbol,
+        platformBalance: { [Op.gt]: "0" },
       },
     });
+
     const fromPaths = wallets.map((wallet) => HD_PATH(wallet.index));
     const { address: changeAddress } = await Wallet.findOne({
-      where: { index: 0, "token.symbol": "btc" },
+      where: { index: 0, "token.symbol": token.symbol },
     });
 
     await blockstream.sendFromMultipleAccountsWithMnemonic({
@@ -722,7 +725,11 @@ export const sendCrypto = async (
     const { amount, network, token: symbol, to, blockchain, appId } = params;
 
     const token = await SupportedToken.findOne({
-      where: { symbol, "network.name": network, blockchain },
+      where: {
+        symbol,
+        "network.name": network,
+        "network.blockchain": blockchain,
+      },
     });
 
     if (!token)
@@ -775,6 +782,8 @@ export const sendCrypto = async (
       },
     };
   } catch (error) {
+    console.log(error);
+
     return {
       payload: {
         status: false,

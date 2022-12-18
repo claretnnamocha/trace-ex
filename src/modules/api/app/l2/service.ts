@@ -17,8 +17,8 @@ export const deposit = async (
     const wallet = await Wallet.findOne({
       where: {
         "token.symbol": symbol,
-        "token.network": network,
-        "token.parentNetwork": { [Op.ne]: null },
+        "token.network.name": network,
+        "token.network.parentNetwork": { [Op.ne]: null },
         "app.id": appId,
       },
     });
@@ -71,7 +71,7 @@ export const withdraw = async (
     const wallet = await Wallet.findOne({
       where: {
         "token.symbol": symbol,
-        "token.network": network,
+        "token.network.name": network,
         "app.id": appId,
       },
     });

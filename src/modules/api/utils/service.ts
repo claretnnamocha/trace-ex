@@ -113,7 +113,7 @@ export const updateWalletBalance = async (
     if (walletId) wallet = await Wallet.findByPk(walletId);
     else if (appId) {
       const app = await App.findByPk(appId);
-      wallet = { app };
+      wallet = { app, token: transaction?.token };
     }
 
     const { id: transactionId } = await Transaction.create({

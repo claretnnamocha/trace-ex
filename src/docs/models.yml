@@ -99,12 +99,18 @@ definitions:
         required: true
       token:
         type: string
-        enum: ["alt", "kwt", "metis", "eth"]
+        enum: ["alt", "kwt", "metis", "eth", "btc"]
         required: true
       network:
         type: string
         enum:
-          ["altlayer-devnet", "metis-goerli", "zksync-goerli", "zksync-mainnet"]
+          [
+            "altlayer-devnet",
+            "metis-goerli",
+            "zksync-goerli",
+            "zksync-mainnet",
+            "bitcoin-testnet",
+          ]
         required: true
       blockchain:
         type: string
