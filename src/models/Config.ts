@@ -1,21 +1,19 @@
 import { DataTypes, UUIDV4 } from "sequelize";
-import { db } from "../configs/db";
+import { Column, IsUUID, Model, PrimaryKey, Table } from "sequelize-typescript";
 
-const Config = db.define(
-  "Config",
-  {
-    id: {
-      type: DataTypes.UUID,
-      primaryKey: true,
-      defaultValue: UUIDV4,
-    },
-    key: { type: DataTypes.STRING, allowNull: false },
-    value: { type: DataTypes.TEXT, allowNull: false },
-  },
-  {
-    timestamps: true,
-    tableName: "config",
-  }
-);
+@Table({ tableName: "config" })
+export class Config extends Model {
+  @IsUUID("4")
+  @PrimaryKey
+  @Column({
+    defaultValue: UUIDV4,
+    type: DataTypes.STRING,
+  })
+  public id: string;
 
-export { Config };
+  @Column({ type: DataTypes.STRING, allowNull: false })
+  public key: string;
+
+  @Column({ type: DataTypes.TEXT, allowNull: false })
+  public value: string;
+}

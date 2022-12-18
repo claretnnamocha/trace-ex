@@ -5,7 +5,6 @@ import { v4 as uuid } from "uuid";
 import { enableWebhooks } from "../configs/env";
 import { jobs } from "../helpers";
 import { App } from "../models";
-import { AppSchema } from "../types/models";
 import { WebhookQueue } from "./queues";
 
 export const sendWebhook = async ({ appId, body }) => {
@@ -20,7 +19,7 @@ export const sendWebhook = async ({ appId, body }) => {
     callback: async () => {
       console.log("Sending webhook 🕸️🪝");
 
-      const { webhookUrl, secretKey }: AppSchema = await App.findByPk(appId);
+      const { webhookUrl, secretKey } = await App.findByPk(appId);
 
       const signature = crypto
         .createHmac("sha512", secretKey)

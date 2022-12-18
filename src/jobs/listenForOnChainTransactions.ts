@@ -3,7 +3,6 @@ import { enableWalletScan } from "../configs/env";
 import { jobs } from "../helpers";
 import { Wallet } from "../models";
 import { updateWalletTransactions } from "../modules/api/utils/service";
-import { WalletSchema } from "../types/models";
 import { ListeningQueue } from "./queues";
 
 export const listenForOnChainTransactions = async () => {
@@ -18,7 +17,7 @@ export const listenForOnChainTransactions = async () => {
     callback: async () => {
       console.log("Listening for on-chain transactions 👂");
 
-      const wallets: WalletSchema[] = await Wallet.findAll({
+      const wallets = await Wallet.findAll({
         where: { active: true },
       });
 

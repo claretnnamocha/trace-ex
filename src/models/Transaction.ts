@@ -1,46 +1,46 @@
-import Sequelize, { DataTypes } from "sequelize";
-import { db } from "../configs/db";
+import { DataTypes, UUIDV4 } from "sequelize";
+import { Column, IsUUID, Model, PrimaryKey, Table } from "sequelize-typescript";
+import { Wallet } from ".";
 
-const Transaction = db.define(
-  "Transaction",
-  {
-    id: {
-      type: DataTypes.UUID,
-      primaryKey: true,
-      defaultValue: Sequelize.UUIDV4,
-    },
-    wallet: { type: DataTypes.JSONB },
-    amount: {
-      type: DataTypes.STRING,
-      defaultValue: null,
-    },
-    type: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      values: ["debit", "credit"],
-    },
-    metadata: { type: DataTypes.JSONB },
-    shouldAggregate: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: true,
-    },
-    confirmed: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-    },
-    isDeleted: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-    },
-  },
-  { timestamps: true, tableName: "transaction" }
-);
+@Table({ tableName: "transaction" })
+export class Transaction extends Model {
+  @IsUUID("4")
+  @PrimaryKey
+  @Column({
+    defaultValue: UUIDV4,
+    type: DataTypes.STRING,
+  })
+  public id: string;
 
-Transaction.prototype.toJSON = function toJSON() {
-  const data = this.dataValues;
+  @Column({ type: DataTypes.JSONB })
+  public wallet: Wallet;
 
-  delete data.isDeleted;
-  return data;
-};
+  @Column({ type: DataTypes.STRING, defaultValue: null })
+  public amount: string;
 
-export { Transaction };
+  @Column({
+    type: DataTypes.STRING,
+    allowNull: false,
+    values: ["debit", "credit"],
+  })
+  public type: string;
+
+  @Column({ type: DataTypes.JSONB })
+  public metadata: any;
+
+  @Column({ type: DataTypes.BOOLEAN, defaultValue: true })
+  public shouldAggregate: boolean;
+
+  @Column({ type: DataTypes.BOOLEAN, defaultValue: false })
+  public confirmed: boolean;
+
+  @Column({ type: DataTypes.BOOLEAN, defaultValue: false })
+  public isDeleted: boolean;
+
+  toJSON() {
+    const data = this.dataValues;
+
+    delete data.isDeleted;
+    return data;
+  }
+}

@@ -1,11 +1,11 @@
 import crypto from "crypto";
 
-export const HD_PATH = (index: number) => `m/49'/1'/90'/87/${index}'`;
+export const HD_PATH = (index: number) => `m/49'/1'/90'/107/${index}'`;
 
 export const SALT = ({ secretKey, walletIndex }) =>
   `0x${crypto
     .createHmac("sha512", secretKey)
-    .update(walletIndex.toFixed())
+    .update(HD_PATH(walletIndex))
     .digest("hex")}`;
 
 export const VALID_NETWORKS = [

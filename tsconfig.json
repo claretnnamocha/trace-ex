@@ -2,6 +2,9 @@
   "compilerOptions": {
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "noUnusedLocals": true
+    "noUnusedLocals": true,
+    "experimentalDecorators": true,
+    "target": "es2017",
+    "module": "commonjs"
   }
 }

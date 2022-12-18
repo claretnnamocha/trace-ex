@@ -17,12 +17,6 @@ import {
   Transaction,
   Wallet,
 } from "../../models";
-import {
-  AppSchema,
-  ExchangeUserSchema,
-  SupportedTokenSchema,
-  WalletSchema,
-} from "../../types/models";
 import { exchange, others } from "../../types/services";
 import { completeSendTransaction, generateWallet } from "../api/app/service";
 import { updateWalletBalance } from "../api/utils/service";
@@ -47,7 +41,7 @@ export const signUp = async (
         const where: any = { [param]: params[param], "app.id": appId };
 
         /* eslint-disable-next-line no-await-in-loop */
-        const duplicate: ExchangeUserSchema = await ExchangeUser.findOne({
+        const duplicate = await ExchangeUser.findOne({
           where,
         });
         if (duplicate) {
@@ -62,9 +56,9 @@ export const signUp = async (
       }
     }
 
-    const app: AppSchema = await App.findByPk(appId);
+    const app = await App.findByPk(appId);
 
-    const tokens: SupportedTokenSchema[] = await SupportedToken.findAll({
+    const tokens = await SupportedToken.findAll({
       where: { verified: true },
     });
 
@@ -86,7 +80,7 @@ export const signUp = async (
       });
     }
 
-    const user: ExchangeUserSchema = await ExchangeUser.create({
+    const user = await ExchangeUser.create({
       ...params,
       app,
       index: walletIndex,
@@ -148,7 +142,7 @@ export const signIn = async (
   try {
     const { user: identifier, password, appId } = params;
 
-    const user: ExchangeUserSchema = await ExchangeUser.findOne({
+    const user = await ExchangeUser.findOne({
       where: {
         [Op.or]: [{ email: identifier }, { phone: identifier }],
         "app.id": appId,
@@ -240,7 +234,7 @@ export const verifyAccount = async (
   try {
     const { token, email, resend, appId } = params;
 
-    const user: ExchangeUserSchema = await ExchangeUser.findOne({
+    const user = await ExchangeUser.findOne({
       where: { email, "app.id": appId },
     });
 
@@ -327,7 +321,7 @@ export const initiateReset = async (
   try {
     const { email, appId } = params;
 
-    const user: ExchangeUserSchema = await ExchangeUser.findOne({
+    const user = await ExchangeUser.findOne({
       where: { email, isDeleted: false, "app.id": appId },
     });
 
@@ -395,7 +389,7 @@ export const verifyReset = async (
   try {
     const { token, email, appId } = params;
 
-    const user: ExchangeUserSchema = await ExchangeUser.findOne({
+    const user = await ExchangeUser.findOne({
       where: { email, "app.id": appId },
     });
 
@@ -435,7 +429,7 @@ export const resetPassword = async (
   try {
     const { token, password, logOtherDevicesOut, email, appId } = params;
 
-    const user: ExchangeUserSchema = await ExchangeUser.findOne({
+    const user = await ExchangeUser.findOne({
       where: { email, "app.id": appId },
     });
 
@@ -485,7 +479,7 @@ export const getProfile = async (
   try {
     const { userId } = params;
 
-    const data: ExchangeUserSchema = await ExchangeUser.findByPk(userId);
+    const data = await ExchangeUser.findByPk(userId);
 
     if (!data) {
       return {
@@ -519,14 +513,14 @@ export const verifyPhone = async (
   try {
     const { token, userId, appId } = params;
 
-    let user: ExchangeUserSchema = await ExchangeUser.findByPk(userId);
+    let user = await ExchangeUser.findByPk(userId);
 
     if (!token) {
       const generatedToken: string = user.generateTotp();
 
       const status = await sms.africastalking.send({
         to: user.phone,
-        body: `Dear ${user.username}, Your ${displayName} verification code is ${generatedToken}`,
+        body: `Dear ${user.firstName}, Your ${displayName} verification code is ${generatedToken}`,
       });
 
       if (status) await user.update({ verifiedPhone: true });
@@ -589,7 +583,7 @@ export const updateProfile = async (
   try {
     const { userId, appId } = params;
 
-    const user: ExchangeUserSchema = await ExchangeUser.findOne({
+    const user = await ExchangeUser.findOne({
       where: { id: userId, isDeleted: false, "app.id": appId },
     });
 
@@ -622,7 +616,7 @@ export const updatePassword = async (
   try {
     const { userId, newPassword, password, logOtherDevicesOut, appId } = params;
 
-    const user: ExchangeUserSchema = await ExchangeUser.findOne({
+    const user = await ExchangeUser.findOne({
       where: { id: userId, isDeleted: false, "app.id": appId },
     });
 
@@ -669,7 +663,7 @@ export const logOtherDevicesOut = async (
   try {
     const { userId } = params;
 
-    const user: ExchangeUserSchema = await ExchangeUser.findByPk(userId);
+    const user = await ExchangeUser.findByPk(userId);
     await user.update({ loginValidFrom: Date.now().toString() });
 
     const data: any = jwt.generate({
@@ -767,7 +761,7 @@ export const getAllUsers = async (
     if ("active" in params) where = { ...where, active };
     if ("isDeleted" in params) where = { ...where, isDeleted };
 
-    const data: ExchangeUserSchema[] = await ExchangeUser.findAll({
+    const data = await ExchangeUser.findAll({
       where,
       order: [["createdAt", "DESC"]],
       limit: pageSize,
@@ -805,7 +799,7 @@ export const getTotpQrCode = async (
   try {
     const { userId } = params;
 
-    const user: ExchangeUserSchema = await ExchangeUser.findByPk(userId);
+    const user = await ExchangeUser.findByPk(userId);
 
     const data = authenticator.keyuri(user.email, displayName, user.totp);
 
@@ -837,7 +831,7 @@ export const validateTotp = async (
   try {
     const { userId, token, appId } = params;
 
-    const user: ExchangeUserSchema = await ExchangeUser.findOne({
+    const user = await ExchangeUser.findOne({
       where: { id: userId, isDeleted: false, "app.id": appId },
     });
 
@@ -878,7 +872,7 @@ export const regenerateTotpSecret = async (
   try {
     const { userId } = params;
 
-    const user: ExchangeUserSchema = await ExchangeUser.findByPk(userId);
+    const user = await ExchangeUser.findByPk(userId);
 
     await user.regenerateOtpSecret();
 
@@ -909,7 +903,7 @@ export const getWallets = async (
   try {
     const { userId } = params;
 
-    const user: ExchangeUserSchema = await ExchangeUser.findByPk(userId);
+    const user = await ExchangeUser.findByPk(userId);
 
     if (!user) {
       return {
@@ -979,7 +973,7 @@ export const getWallet = async (
   try {
     const { userId, token, network } = params;
 
-    const user: ExchangeUserSchema = await ExchangeUser.findByPk(userId);
+    const user = await ExchangeUser.findByPk(userId);
 
     if (!user) {
       return {
@@ -1048,7 +1042,7 @@ export const getTransactions = async (
   try {
     const { userId, token, network } = params;
 
-    const user: ExchangeUserSchema = await ExchangeUser.findByPk(userId);
+    const user = await ExchangeUser.findByPk(userId);
 
     if (!user) {
       return {
@@ -1087,7 +1081,7 @@ export const sendCrypto = async (
   try {
     const { userId, token: symbol, network, amount, to, blockchain } = params;
 
-    const user: ExchangeUserSchema = await ExchangeUser.findByPk(userId);
+    const user = await ExchangeUser.findByPk(userId);
 
     if (!user) {
       return {
@@ -1096,12 +1090,12 @@ export const sendCrypto = async (
       };
     }
 
-    const wallet: WalletSchema = await Wallet.findOne({
+    const wallet = await Wallet.findOne({
       where: {
         index: user.index,
         "token.symbol": symbol,
-        "token.network": network,
-        "token.blockchain": blockchain,
+        "token.network.name": network,
+        "token.network.blockchain": blockchain,
       },
     });
 
@@ -1124,7 +1118,7 @@ export const sendCrypto = async (
     }
 
     const sent = await completeSendTransaction({
-      token: wallet.token as SupportedTokenSchema,
+      token: wallet.token as SupportedToken,
       amount,
       // @ts-ignore
       blockchain,

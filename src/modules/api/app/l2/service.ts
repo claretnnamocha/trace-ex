@@ -1,7 +1,6 @@
 import { Op } from "sequelize";
 import { zksync } from "../../../../helpers/crypto/ethereum";
 import { Wallet } from "../../../../models";
-import { WalletSchema } from "../../../../types/models";
 import { api, others } from "../../../../types/services";
 
 /**
@@ -15,11 +14,11 @@ export const deposit = async (
   try {
     const { amount, token: symbol, to, network, appId, privateKey } = params;
 
-    const wallet: WalletSchema = await Wallet.findOne({
+    const wallet = await Wallet.findOne({
       where: {
         "token.symbol": symbol,
-        "token.network": network,
-        "token.parentNetwork": { [Op.ne]: null },
+        "token.network.name": network,
+        "token.network.parentNetwork": { [Op.ne]: null },
         "app.id": appId,
       },
     });
@@ -69,10 +68,10 @@ export const withdraw = async (
   try {
     const { amount, token: symbol, to, network, appId, privateKey } = params;
 
-    const wallet: WalletSchema = await Wallet.findOne({
+    const wallet = await Wallet.findOne({
       where: {
         "token.symbol": symbol,
-        "token.network": network,
+        "token.network.name": network,
         "app.id": appId,
       },
     });
