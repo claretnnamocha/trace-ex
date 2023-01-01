@@ -19,7 +19,7 @@
 - [ ] Recurring Payments
 - [ ] Swaps
 - [ ] Staking service
-- [ ] Interact with private account
+- [ ] Interact with private account/Metamask
 - [ ] NFT Support
 
 ## Strengths

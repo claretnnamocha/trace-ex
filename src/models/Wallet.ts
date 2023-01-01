@@ -58,7 +58,7 @@ export class Wallet extends Model {
   public platformBalance: string;
 
   @Column({ type: DataTypes.STRING, defaultValue: "0" })
-  public onChainBalance;
+  public onChainBalance: string;
 
   @Column({ type: DataTypes.STRING, defaultValue: "0" })
   public totalRecieved: string;
